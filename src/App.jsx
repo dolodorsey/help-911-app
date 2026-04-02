@@ -240,7 +240,7 @@ function CustHelp({ go, switchMode }) {
       </div>
 
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginTop:14}}>
-        <Btn v="secondary" onClick={()=>window.open("tel:18004878911")} icon="⚖️">I Need an Attorney</Btn>
+        <Btn v="secondary" onClick={()=>go("attorney")} icon="⚖️">I Need an Attorney</Btn>
         <Btn v="secondary" onClick={()=>go("clinics")} icon="🏥">I Need Treatment</Btn>
       </div>
       <div style={{marginTop:10}}>
@@ -946,6 +946,338 @@ function RepNotif() {
 // MAIN APP SHELL
 // ═══════════════════════════════════════════
 
+// ═══════════════════════════════════════════
+// ATTORNEY INTAKE — MULTI-STEP SIGN UP
+// ═══════════════════════════════════════════
+function CustAttorney({ go }) {
+  const [step, setStep] = useState(1);
+  const [d, setD] = useState({});
+  const [docs, setDocs] = useState([]);
+  const [submitted, setSubmitted] = useState(false);
+  const u = (k,v) => setD(p=>({...p,[k]:v}));
+  const totalSteps = 6;
+
+  const StepBar = () => (
+    <div style={{marginBottom:20}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+        <p style={{...font("DM Sans",11,600,C.muted)}}>Step {step} of {totalSteps}</p>
+        {step > 1 && <button onClick={()=>setStep(step-1)} style={{background:"none",border:"none",cursor:"pointer",...font("DM Sans",11,600,C.red)}}>← Back</button>}
+      </div>
+      <div style={{display:"flex",gap:4}}>
+        {Array.from({length:totalSteps}).map((_,i)=>(
+          <div key={i} style={{flex:1,height:4,borderRadius:2,background:i<step?C.red:i===step-1?C.redLight:C.bgInput,transition:"background 0.3s"}} />
+        ))}
+      </div>
+    </div>
+  );
+
+  const Opt = ({label, val, field, icon}) => {
+    const active = d[field] === val;
+    return (
+      <div onClick={()=>u(field,val)} style={{
+        display:"flex",alignItems:"center",gap:10,background:active?`${C.red}12`:C.bgInput,
+        border:`1px solid ${active?`${C.red}40`:C.border}`,borderRadius:10,padding:"12px 14px",
+        cursor:"pointer",transition:"all 0.2s"
+      }}>
+        {icon && <span style={{fontSize:18}}>{icon}</span>}
+        <span style={{...font("DM Sans",13,active?600:400,active?C.white:C.chrome)}}>{label}</span>
+        <div style={{marginLeft:"auto",width:18,height:18,borderRadius:9,border:`2px solid ${active?C.red:C.chromeDim}`,background:active?C.red:"transparent",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          {active && <div style={{width:6,height:6,borderRadius:3,background:"#fff"}} />}
+        </div>
+      </div>
+    );
+  };
+
+  if (submitted) return (
+    <div style={{padding:"20px 18px 110px"}}>
+      <Logo size="sm" />
+      <div style={{textAlign:"center",paddingTop:40}}>
+        <div style={{width:80,height:80,borderRadius:20,background:`${C.green}15`,border:`2px solid ${C.green}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:40,margin:"0 auto 20px"}}>✅</div>
+        <h2 style={{...font("Oswald",24,700,C.white)}}>You're All Set.</h2>
+        <p style={{...font("DM Sans",14,400,C.chrome),marginTop:10,lineHeight:1.6}}>
+          Your attorney consultation is scheduled for<br/>
+          <strong style={{color:C.white}}>{d.callbackDate || "tomorrow"}</strong> — <strong style={{color:C.green}}>{d.callbackTime === "morning" ? "9:00 - 12:00 PM" : d.callbackTime === "afternoon" ? "12:00 - 4:00 PM" : "4:00 - 7:00 PM"}</strong>
+        </p>
+        <Card style={{marginTop:20,textAlign:"left"}}>
+          <p style={{...font("DM Sans",11,500,C.muted),letterSpacing:0.5}}>YOUR INTAKE ID</p>
+          <p style={{...font("Oswald",20,700,C.red),marginTop:4}}>H911-ATT-{String(Date.now()).slice(-6)}</p>
+          <p style={{...font("DM Sans",12,400,C.muted),marginTop:8}}>Save this number. Your agent will reference it on your call.</p>
+        </Card>
+        <Card style={{marginTop:12,textAlign:"left"}}>
+          <h4 style={{...font("Oswald",14,600,C.white),marginBottom:8}}>What Happens Next</h4>
+          {["A Help 911 agent will call you at your scheduled time","They'll review your case details and uploaded documents","You'll be matched with the right personal injury attorney","Your attorney consultation is free — zero out of pocket"].map((s,i)=>(
+            <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start",marginBottom:8}}>
+              <span style={{color:C.green,fontSize:12,marginTop:2}}>✓</span>
+              <p style={{...font("DM Sans",12,400,C.chrome),lineHeight:1.5}}>{s}</p>
+            </div>
+          ))}
+        </Card>
+        <div style={{marginTop:20,display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <Btn v="secondary" onClick={()=>go("help")}>Back to Home</Btn>
+          <Btn v="primary" onClick={()=>window.open("tel:18004878911")}>📞 Call Now</Btn>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{padding:"20px 18px 110px"}}>
+      <Logo size="sm" />
+
+      {/* Header */}
+      <div style={{display:"flex",alignItems:"center",gap:10,marginTop:16,marginBottom:16}}>
+        <div style={{width:40,height:40,borderRadius:12,background:`${C.red}15`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>⚖️</div>
+        <div>
+          <h2 style={{...font("Oswald",20,600,C.white)}}>Attorney Sign-Up</h2>
+          <p style={{...font("DM Sans",12,400,C.muted)}}>Free consultation. Zero out-of-pocket cost.</p>
+        </div>
+      </div>
+
+      {/* Or call/text bar */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
+        <Btn v="ghost" small icon="📞" onClick={()=>window.open("tel:18004878911")}>Call Instead</Btn>
+        <Btn v="ghost" small icon="💬" onClick={()=>window.open("sms:18004878911")}>Text Instead</Btn>
+      </div>
+
+      <StepBar />
+
+      {/* STEP 1: Basic Info */}
+      {step === 1 && (
+        <Card>
+          <h3 style={{...font("Oswald",16,600,C.white),marginBottom:4}}>Your Information</h3>
+          <p style={{...font("DM Sans",12,400,C.muted),marginBottom:16}}>We need a few basics to get started.</p>
+          <Inp label="First Name *" placeholder="First name" icon="👤" value={d.firstName} onChange={e=>u("firstName",e.target.value)} />
+          <Inp label="Last Name" placeholder="Last name" icon="👤" value={d.lastName} onChange={e=>u("lastName",e.target.value)} />
+          <Inp label="Phone Number *" placeholder="(___) ___-____" type="tel" icon="📱" value={d.phone} onChange={e=>u("phone",e.target.value)} />
+          <Inp label="Email" placeholder="email@example.com" type="email" icon="✉️" value={d.email} onChange={e=>u("email",e.target.value)} />
+          <Inp label="City" placeholder="Atlanta, GA" icon="📍" value={d.city} onChange={e=>u("city",e.target.value)} />
+          <Btn v="primary" full onClick={()=>d.firstName && d.phone ? setStep(2) : null} disabled={!d.firstName || !d.phone}>Continue →</Btn>
+        </Card>
+      )}
+
+      {/* STEP 2: Accident Details */}
+      {step === 2 && (
+        <Card>
+          <h3 style={{...font("Oswald",16,600,C.white),marginBottom:4}}>About the Accident</h3>
+          <p style={{...font("DM Sans",12,400,C.muted),marginBottom:16}}>Tell us what happened so we can match you with the right attorney.</p>
+          <Inp label="Accident Date *" type="date" icon="📅" value={d.accidentDate} onChange={e=>u("accidentDate",e.target.value)} />
+          <p style={{...font("DM Sans",11,500,C.muted),marginBottom:8,letterSpacing:0.5}}>Type of Accident *</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
+            {[{l:"Car Accident",v:"car",i:"🚗"},{l:"Big Truck",v:"truck",i:"🚛"},{l:"Motorcycle",v:"motorcycle",i:"🏍️"},{l:"Uber / Lyft",v:"uber_lyft",i:"🚕"},{l:"Slip & Fall",v:"slip_fall",i:"⚠️"},{l:"Pedestrian",v:"pedestrian",i:"🚶"},{l:"Hit & Run",v:"hit_run",i:"💥"},{l:"Other",v:"other",i:"📋"}].map(a=>(
+              <Opt key={a.v} label={a.l} val={a.v} field="accidentType" icon={a.i} />
+            ))}
+          </div>
+          <div style={{marginBottom:16}}>
+            <p style={{...font("DM Sans",11,500,C.muted),marginBottom:6,letterSpacing:0.5}}>Brief Description</p>
+            <textarea value={d.accidentDesc||""} onChange={e=>u("accidentDesc",e.target.value)}
+              placeholder="What happened? (intersection, highway, parking lot, etc.)"
+              style={{width:"100%",minHeight:80,background:C.bgInput,border:`1px solid ${C.border}`,borderRadius:10,padding:"12px 14px",
+                color:C.white,fontFamily:"DM Sans",fontSize:14,outline:"none",resize:"vertical"}} />
+          </div>
+          <p style={{...font("DM Sans",11,500,C.muted),marginBottom:8,letterSpacing:0.5}}>Who was at fault?</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
+            {[{l:"Other Driver",v:"other_driver"},{l:"Shared Fault",v:"shared"},{l:"Not at Fault",v:"not_at_fault"},{l:"Not Sure",v:"unsure"}].map(f=>(
+              <Opt key={f.v} label={f.l} val={f.v} field="atFault" />
+            ))}
+          </div>
+          <Btn v="primary" full onClick={()=>d.accidentType ? setStep(3) : null} disabled={!d.accidentType}>Continue →</Btn>
+        </Card>
+      )}
+
+      {/* STEP 3: Injury Info */}
+      {step === 3 && (
+        <Card>
+          <h3 style={{...font("Oswald",16,600,C.white),marginBottom:4}}>Your Injuries</h3>
+          <p style={{...font("DM Sans",12,400,C.muted),marginBottom:16}}>Help us understand your situation so we get you the right care.</p>
+          <div style={{marginBottom:16}}>
+            <p style={{...font("DM Sans",11,500,C.muted),marginBottom:6,letterSpacing:0.5}}>Describe your injuries</p>
+            <textarea value={d.injuryDesc||""} onChange={e=>u("injuryDesc",e.target.value)}
+              placeholder="Neck pain, back pain, headaches, limited mobility, etc."
+              style={{width:"100%",minHeight:80,background:C.bgInput,border:`1px solid ${C.border}`,borderRadius:10,padding:"12px 14px",
+                color:C.white,fontFamily:"DM Sans",fontSize:14,outline:"none",resize:"vertical"}} />
+          </div>
+          <p style={{...font("DM Sans",11,500,C.muted),marginBottom:8,letterSpacing:0.5}}>Are you currently receiving treatment?</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+            <Opt label="Yes" val={true} field="currentlyTreating" icon="✅" />
+            <Opt label="No" val={false} field="currentlyTreating" icon="❌" />
+          </div>
+          {d.currentlyTreating === true && (
+            <Inp label="Where are you being treated?" placeholder="Clinic or doctor name" value={d.treatingProvider} onChange={e=>u("treatingProvider",e.target.value)} />
+          )}
+          <p style={{...font("DM Sans",11,500,C.muted),marginBottom:8,letterSpacing:0.5}}>Were you hospitalized?</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+            <Opt label="Yes" val={true} field="hospitalized" icon="🏥" />
+            <Opt label="No" val={false} field="hospitalized" icon="🏠" />
+          </div>
+          <p style={{...font("DM Sans",11,500,C.muted),marginBottom:8,letterSpacing:0.5}}>Have you missed work?</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+            <Opt label="Yes" val={true} field="missedWork" icon="💼" />
+            <Opt label="No" val={false} field="missedWork" icon="👍" />
+          </div>
+          {d.missedWork === true && (
+            <Inp label="How many days?" placeholder="e.g. 5" type="number" value={d.missedDays} onChange={e=>u("missedDays",e.target.value)} />
+          )}
+          <Btn v="primary" full onClick={()=>setStep(4)}>Continue →</Btn>
+        </Card>
+      )}
+
+      {/* STEP 4: Insurance Info */}
+      {step === 4 && (
+        <Card>
+          <h3 style={{...font("Oswald",16,600,C.white),marginBottom:4}}>Insurance Information</h3>
+          <p style={{...font("DM Sans",12,400,C.muted),marginBottom:16}}>This helps your attorney build the strongest case.</p>
+          <p style={{...font("DM Sans",11,500,C.muted),marginBottom:8,letterSpacing:0.5}}>Do you have auto insurance?</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+            <Opt label="Yes" val={true} field="hasInsurance" icon="✅" />
+            <Opt label="No" val={false} field="hasInsurance" icon="❌" />
+          </div>
+          {d.hasInsurance === true && (<>
+            <Inp label="Your Insurance Company" placeholder="e.g. State Farm, GEICO" value={d.insuranceCo} onChange={e=>u("insuranceCo",e.target.value)} />
+            <Inp label="Policy Number (if available)" placeholder="Optional" value={d.policyNum} onChange={e=>u("policyNum",e.target.value)} />
+          </>)}
+          <Inp label="Other Driver's Insurance (if known)" placeholder="Optional" value={d.otherInsurance} onChange={e=>u("otherInsurance",e.target.value)} />
+          <p style={{...font("DM Sans",11,500,C.muted),marginBottom:8,letterSpacing:0.5}}>Was a police report filed?</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+            <Opt label="Yes" val={true} field="policeReport" icon="🚔" />
+            <Opt label="No / Not Sure" val={false} field="policeReport" icon="❓" />
+          </div>
+          {d.policeReport === true && (
+            <Inp label="Report Number" placeholder="Optional" value={d.reportNum} onChange={e=>u("reportNum",e.target.value)} />
+          )}
+          <Btn v="primary" full onClick={()=>setStep(5)}>Continue →</Btn>
+        </Card>
+      )}
+
+      {/* STEP 5: Document Upload */}
+      {step === 5 && (
+        <Card>
+          <h3 style={{...font("Oswald",16,600,C.white),marginBottom:4}}>Upload Documents</h3>
+          <p style={{...font("DM Sans",12,400,C.muted),marginBottom:16}}>Upload anything you have — photos, reports, insurance cards. The more info, the stronger your case.</p>
+          {[
+            {type:"accident_photos",label:"Accident Photos",icon:"📸",desc:"Photos of damage, scene, injuries"},
+            {type:"police_report",label:"Police Report",icon:"🚔",desc:"SR-13 form or report number"},
+            {type:"insurance_card",label:"Insurance Card",icon:"💳",desc:"Front and back of your card"},
+            {type:"medical_records",label:"Medical Records",icon:"🏥",desc:"ER visit, doctor notes, X-rays"},
+            {type:"drivers_license",label:"Driver's License / ID",icon:"🪪",desc:"For identity verification"},
+            {type:"other",label:"Other Documents",icon:"📄",desc:"Anything else related to your case"},
+          ].map(dt => {
+            const uploaded = docs.includes(dt.type);
+            return (
+              <div key={dt.type} onClick={()=>!uploaded && setDocs(p=>[...p,dt.type])} style={{
+                display:"flex",alignItems:"center",gap:12,padding:"12px 0",
+                borderBottom:`1px solid ${C.border}`,cursor:uploaded?"default":"pointer"
+              }}>
+                <div style={{width:40,height:40,borderRadius:10,background:uploaded?`${C.green}15`:`${C.bgInput}`,border:`1px solid ${uploaded?`${C.green}30`:C.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>
+                  {uploaded ? "✅" : dt.icon}
+                </div>
+                <div style={{flex:1}}>
+                  <p style={{...font("DM Sans",13,500,uploaded?C.green:C.white)}}>{dt.label}</p>
+                  <p style={{...font("DM Sans",11,400,C.dim)}}>{uploaded ? "Uploaded" : dt.desc}</p>
+                </div>
+                {!uploaded && <span style={{...font("DM Sans",10,600,C.red)}}>TAP TO UPLOAD</span>}
+              </div>
+            );
+          })}
+          <p style={{...font("DM Sans",11,400,C.muted),marginTop:12,marginBottom:16,lineHeight:1.5}}>
+            Don't have documents right now? No problem — you can upload them later from the Documents tab after your agent call.
+          </p>
+          <Btn v="primary" full onClick={()=>setStep(6)}>Continue →</Btn>
+          <div style={{marginTop:8}}>
+            <Btn v="ghost" full onClick={()=>setStep(6)}>Skip for Now</Btn>
+          </div>
+        </Card>
+      )}
+
+      {/* STEP 6: Schedule Callback */}
+      {step === 6 && (
+        <Card>
+          <h3 style={{...font("Oswald",16,600,C.white),marginBottom:4}}>Schedule Your Agent Call</h3>
+          <p style={{...font("DM Sans",12,400,C.muted),marginBottom:16}}>Pick a time and a Help 911 agent will call you to review your case and connect you with an attorney.</p>
+
+          <p style={{...font("DM Sans",11,500,C.muted),marginBottom:8,letterSpacing:0.5}}>Preferred Date</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:16}}>
+            {(() => {
+              const dates = [];
+              for (let i = 1; i <= 3; i++) {
+                const dt = new Date();
+                dt.setDate(dt.getDate() + i);
+                const day = dt.toLocaleDateString("en-US", { weekday: "short" });
+                const md = dt.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                const iso = dt.toISOString().split("T")[0];
+                dates.push({ label: i === 1 ? "Tomorrow" : day, sub: md, val: iso });
+              }
+              return dates;
+            })().map(dt => (
+              <div key={dt.val} onClick={()=>u("callbackDate",dt.val)} style={{
+                textAlign:"center",padding:"12px 8px",borderRadius:10,cursor:"pointer",
+                background:d.callbackDate===dt.val?`${C.red}15`:C.bgInput,
+                border:`1px solid ${d.callbackDate===dt.val?`${C.red}40`:C.border}`,transition:"all 0.2s"
+              }}>
+                <p style={{...font("Oswald",14,600,d.callbackDate===dt.val?C.white:C.chrome)}}>{dt.label}</p>
+                <p style={{...font("DM Sans",11,400,C.muted),marginTop:2}}>{dt.sub}</p>
+              </div>
+            ))}
+          </div>
+
+          <p style={{...font("DM Sans",11,500,C.muted),marginBottom:8,letterSpacing:0.5}}>Preferred Time</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:16}}>
+            {[{l:"Morning",s:"9AM - 12PM",v:"morning",i:"🌅"},{l:"Afternoon",s:"12PM - 4PM",v:"afternoon",i:"☀️"},{l:"Evening",s:"4PM - 7PM",v:"evening",i:"🌆"}].map(t=>(
+              <div key={t.v} onClick={()=>u("callbackTime",t.v)} style={{
+                textAlign:"center",padding:"12px 8px",borderRadius:10,cursor:"pointer",
+                background:d.callbackTime===t.v?`${C.red}15`:C.bgInput,
+                border:`1px solid ${d.callbackTime===t.v?`${C.red}40`:C.border}`,transition:"all 0.2s"
+              }}>
+                <span style={{fontSize:20}}>{t.i}</span>
+                <p style={{...font("Oswald",13,600,d.callbackTime===t.v?C.white:C.chrome),marginTop:4}}>{t.l}</p>
+                <p style={{...font("DM Sans",10,400,C.muted),marginTop:2}}>{t.s}</p>
+              </div>
+            ))}
+          </div>
+
+          <p style={{...font("DM Sans",11,500,C.muted),marginBottom:8,letterSpacing:0.5}}>Preferred Language</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
+            <Opt label="English" val="English" field="language" icon="🇺🇸" />
+            <Opt label="Español" val="Spanish" field="language" icon="🇲🇽" />
+          </div>
+
+          {/* Summary */}
+          <div style={{background:C.bgInput,borderRadius:10,padding:14,marginBottom:16}}>
+            <p style={{...font("DM Sans",11,600,C.muted),letterSpacing:0.5,marginBottom:8}}>YOUR CASE SUMMARY</p>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+              {[
+                {l:"Name",v:`${d.firstName||""} ${d.lastName||""}`},
+                {l:"Phone",v:d.phone||"—"},
+                {l:"Accident",v:d.accidentType?.replace(/_/g," ")||"—"},
+                {l:"Date",v:d.accidentDate||"—"},
+                {l:"At Fault",v:d.atFault?.replace(/_/g," ")||"—"},
+                {l:"Docs",v:`${docs.length} uploaded`},
+              ].map(s=>(
+                <div key={s.l}>
+                  <p style={{...font("DM Sans",10,400,C.dim)}}>{s.l}</p>
+                  <p style={{...font("DM Sans",12,500,C.chrome),marginTop:1,textTransform:"capitalize"}}>{s.v}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Btn v="primary" full onClick={()=>{if(d.callbackDate && d.callbackTime) setSubmitted(true)}} disabled={!d.callbackDate || !d.callbackTime}>
+            Schedule My Agent Call
+          </Btn>
+          <p style={{...font("DM Sans",10,400,C.dim),textAlign:"center",marginTop:10}}>By submitting, you agree to receive a call from a Help 911 agent at your scheduled time.</p>
+        </Card>
+      )}
+
+      {/* Bottom CTA */}
+      {!submitted && (
+        <div style={{marginTop:16,textAlign:"center"}}>
+          <p style={{...font("DM Sans",12,400,C.muted),marginBottom:8}}>Rather talk to someone right now?</p>
+          <Btn v="primary" full icon="📞" onClick={()=>window.open("tel:18004878911")}>Call 1-800-HELP-911</Btn>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const CUST_TABS = [
   {id:"help",icon:"🆘",label:"Help Now"},{id:"clinics",icon:"📍",label:"Clinics"},
   {id:"services",icon:"📋",label:"Services"},{id:"next",icon:"📖",label:"Next Steps"},
@@ -984,6 +1316,7 @@ export default function Help911App() {
 
   const screens = {
     help:<CustHelp go={go} switchMode={switchMode} />,
+    attorney:<CustAttorney go={go} />,
     clinics:<CustClinics />, services:<CustServices go={go} />, next:<CustNext />,
     dashboard:<CustDash go={go} />, treatment:<CustTreatment />,
     case:<CustCase />, docs:<CustDocs />, transport:<CustTransport />,
