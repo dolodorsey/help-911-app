@@ -2,7 +2,7 @@
 // Calls Supabase + GHL without n8n middleware
 
 const SUPABASE_URL = "https://dzlmtvodpyhetvektfuo.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6bG10dm9kcHloZXR2ZWt0ZnVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk4MTIzODcsImV4cCI6MjA1NTM4ODM4N30.xVJuMFSMb0jmOxRwjG1YFdjRPrXwqhryU9k8Z1U7aDY";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6bG10dm9kcHloZXR2ZWt0ZnVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1ODQ4NjQsImV4cCI6MjA4NTE2MDg2NH0.qmnWB4aWdb7U8Iod9Hv8PQAOJO3AG0vYEGnPS--kfAo";
 const GHL_PIT = "pit-9a59cc0e-98f4-4968-a45a-a6c3663ffeaf";
 const GHL_LOCATION = "My8EzLOwxDNkXVKLbFBh";
 
