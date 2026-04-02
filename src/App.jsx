@@ -257,7 +257,7 @@ function CustHelp({ go, switchMode }) {
       {/* Full background image */}
       <div style={{
         position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:0,
-        backgroundImage:"url(/help911-bg.png)",
+        backgroundImage:"url(/help911-bg.jpg)",
         backgroundSize:"cover",backgroundPosition:"center top",backgroundRepeat:"no-repeat",
       }}>
         {/* Dark overlay for readability */}
