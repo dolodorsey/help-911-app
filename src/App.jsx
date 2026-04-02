@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { submitLead, submitAttorneyIntake } from "./api.js";
+import { submitLead, submitAttorneyIntake, fetchLeads, fetchAppointments, fetchLeadStats } from "./api.js";
 
 /* ═══ ERROR BOUNDARY ═══ */
 class H911ErrorBoundary extends React.Component{
@@ -84,7 +84,7 @@ const TESTIMONIALS = [
 
 const STATS = {label:"Voted Best of Georgia 2025",rating:"4.8",reviews:"816",cases:"Tens of Thousands",recovered:"Hundreds of Millions"};
 
-const LEADS = [
+const DEMO_LEADS = [
   { id:1, name:"Marcus Johnson", phone:"(404) 555-1234", date:"Apr 1", needs:["Treatment","Attorney"], status:"New", urgency:"high" },
   { id:2, name:"Tamika Williams", phone:"(770) 555-5678", date:"Mar 31", needs:["Transportation","Treatment"], status:"Callback Requested", urgency:"high" },
   { id:3, name:"David Chen", phone:"(678) 555-9012", date:"Mar 30", needs:["Treatment"], status:"In Treatment", urgency:"med" },
@@ -93,14 +93,18 @@ const LEADS = [
   { id:6, name:"Keisha Davis", phone:"(678) 555-2345", date:"Mar 27", needs:["Treatment","Attorney"], status:"Records Review", urgency:"low" },
 ];
 
-const PHASES = ["Intake","In Treatment","Records","Case Build","Demand","Negotiation","Settlement"];
-
-const APPTS = [
+const DEMO_APPTS = [
   { id:1, client:"Marcus Johnson", time:"10:00 AM", clinic:"Stonecrest", type:"Initial Eval", transport:true },
   { id:2, client:"David Chen", time:"11:30 AM", clinic:"Midtown Care", type:"PT Session #4", transport:false },
   { id:3, client:"Keisha Davis", time:"2:00 PM", clinic:"Decatur Recovery", type:"Chiro Follow-up", transport:true },
   { id:4, client:"Robert Jackson", time:"3:30 PM", clinic:"South DeKalb", type:"MRI Review", transport:false },
 ];
+
+// These get replaced by real Supabase data when the rep portal loads
+let LEADS = DEMO_LEADS;
+let APPTS = DEMO_APPTS;
+
+const PHASES = ["Intake","In Treatment","Records","Case Build","Demand","Negotiation","Settlement"];
 
 // ─── COMPONENTS ───
 function Logo({ size="md" }) {
@@ -804,9 +808,17 @@ function CustDocs() {
 // ═══════════════════════════════════════════
 
 function RepDash({go}) {
-  const newLeads = LEADS.filter(l=>l.status==="New"||l.status==="Callback Requested").length;
-  const inTreatment = LEADS.filter(l=>l.status.includes("Treatment")).length;
-  const todayAppts = APPTS.length;
+  const [realLeads, setRealLeads] = useState(null);
+  const [realAppts, setRealAppts] = useState(null);
+  useEffect(()=>{
+    fetchLeads().then(d=>{if(d.length>0){LEADS=d;setRealLeads(d);}else setRealLeads(DEMO_LEADS);});
+    fetchAppointments().then(d=>{if(d.length>0){APPTS=d;setRealAppts(d);}else setRealAppts(DEMO_APPTS);});
+  },[]);
+  const activeLeads = realLeads || LEADS;
+  const activeAppts = realAppts || APPTS;
+  const newLeads = activeLeads.filter(l=>l.status==="New"||l.status==="Callback Requested").length;
+  const inTreatment = activeLeads.filter(l=>(l.status||'').includes("Treatment")).length;
+  const todayAppts = activeAppts.length;
   return (
     <div style={{padding:"20px 18px 110px"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -834,7 +846,7 @@ function RepDash({go}) {
       {/* Urgent Actions */}
       <Card style={{marginBottom:14,background:`linear-gradient(135deg,#180808,${C.bgCard})`,borderColor:`${C.red}20`}}>
         <h3 style={{...font("Oswald",14,600,C.redLight),marginBottom:10}}>🚨 Requires Attention</h3>
-        {LEADS.filter(l=>l.urgency==="high").map(l=>(
+        {activeLeads.filter(l=>l.urgency==="high").map(l=>(
           <div key={l.id} onClick={()=>go("leads")} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:`1px solid ${C.border}`,cursor:"pointer"}}>
             <div style={{width:32,height:32,borderRadius:8,background:`${C.red}15`,display:"flex",alignItems:"center",justifyContent:"center",...font("Oswald",12,600,C.red)}}>{l.name[0]}</div>
             <div style={{flex:1}}>
@@ -849,7 +861,7 @@ function RepDash({go}) {
       {/* Today's Schedule */}
       <Card style={{marginBottom:14}}>
         <h3 style={{...font("Oswald",14,600,C.white),marginBottom:12}}>📅 Today's Appointments</h3>
-        {APPTS.slice(0,3).map(a=>(
+        {activeAppts.slice(0,3).map(a=>(
           <div key={a.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:`1px solid ${C.border}`}}>
             <div style={{...font("Oswald",13,600,C.blue),minWidth:65}}>{a.time}</div>
             <div style={{flex:1}}>

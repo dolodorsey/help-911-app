@@ -141,3 +141,61 @@ export async function submitAttorneyIntake(data) {
     return { success: false, error: err.message };
   }
 }
+
+// ── Real data queries for Rep portal ──
+const SB_URL = "https://dzlmtvodpyhetvektfuo.supabase.co";
+const SB_KEY_READ = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6bG10dm9kcHloZXR2ZWt0ZnVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1ODQ4NjQsImV4cCI6MjA4NTE2MDg2NH0.qmnWB4aWdb7U8Iod9Hv8PQAOJO3AG0vYEGnPS--kfAo";
+
+export async function fetchLeads() {
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/help911_leads?select=*&order=created_at.desc&limit=50`, {
+      headers: { apikey: SB_KEY_READ, Authorization: `Bearer ${SB_KEY_READ}` },
+    });
+    const data = await r.json();
+    if (Array.isArray(data)) return data.map(l => ({
+      id: l.id,
+      name: `${l.first_name || ''} ${l.last_name || ''}`.trim() || 'Unknown',
+      phone: l.phone || '',
+      date: l.created_at ? new Date(l.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '',
+      needs: [l.needs_attorney && 'Attorney', l.needs_treatment && 'Treatment', l.needs_transportation && 'Transportation', l.not_sure && 'Not Sure'].filter(Boolean),
+      status: l.status || 'New',
+      urgency: l.urgency || 'med',
+      source: l.source || 'app',
+    }));
+    return [];
+  } catch { return []; }
+}
+
+export async function fetchAppointments() {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const r = await fetch(`${SB_URL}/rest/v1/help911_appointments?select=*,help911_clients(first_name,last_name),help911_clinics(name)&scheduled_at=gte.${today}T00:00:00&order=scheduled_at.asc&limit=20`, {
+      headers: { apikey: SB_KEY_READ, Authorization: `Bearer ${SB_KEY_READ}` },
+    });
+    const data = await r.json();
+    if (Array.isArray(data)) return data.map(a => ({
+      id: a.id,
+      client: a.help911_clients ? `${a.help911_clients.first_name || ''} ${a.help911_clients.last_name || ''}`.trim() : 'Unknown',
+      time: a.scheduled_at ? new Date(a.scheduled_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : 'TBD',
+      clinic: a.help911_clinics?.name || 'TBD',
+      type: a.appointment_type || 'Appointment',
+      transport: a.transport_requested || false,
+    }));
+    return [];
+  } catch { return []; }
+}
+
+export async function fetchLeadStats() {
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/help911_leads?select=status&limit=500`, {
+      headers: { apikey: SB_KEY_READ, Authorization: `Bearer ${SB_KEY_READ}` },
+    });
+    const data = await r.json();
+    if (!Array.isArray(data)) return { total: 0, new: 0, treatment: 0 };
+    return {
+      total: data.length,
+      new: data.filter(l => l.status === 'New' || l.status === 'Callback Requested').length,
+      treatment: data.filter(l => (l.status || '').includes('Treatment')).length,
+    };
+  } catch { return { total: 0, new: 0, treatment: 0 }; }
+}
