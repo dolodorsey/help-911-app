@@ -1556,6 +1556,16 @@ function Help911App() {
 
         {AuthOverlay}
         {screens[tab] || screens.help}
+        {/* Legal + Sign Out for authenticated portals */}
+        {(mode==='rep'||mode==='client')&&(
+          <div style={{padding:'12px 18px 90px',textAlign:'center'}}>
+            <div style={{display:'flex',justifyContent:'center',gap:16,marginBottom:8}}>
+              <button onClick={()=>window.open('https://thekollectivehospitalitygroup.com/terms','_blank')} style={{background:'none',border:'none',color:C.dim,fontSize:10,cursor:'pointer',fontFamily:'DM Sans,sans-serif',textDecoration:'underline'}}>Terms of Service</button>
+              <button onClick={()=>window.open('https://thekollectivehospitalitygroup.com/privacy','_blank')} style={{background:'none',border:'none',color:C.dim,fontSize:10,cursor:'pointer',fontFamily:'DM Sans,sans-serif',textDecoration:'underline'}}>Privacy Policy</button>
+            </div>
+            <button onClick={()=>{if(mode==='rep'){setRepSession(null);localStorage.removeItem('h911_rep');}else{setClientSession(null);localStorage.removeItem('h911_client');}setMode('public');setTab('help');}} style={{background:'none',border:`1px solid ${C.accent}30`,color:C.accent,borderRadius:10,padding:'8px 20px',fontSize:12,cursor:'pointer',fontFamily:'DM Sans,sans-serif',fontWeight:600}}>Sign Out</button>
+          </div>
+        )}
         <NavBar tab={tab} setTab={go} tabs={tabs} accent={accent} />
       </div>
     </>
