@@ -231,10 +231,10 @@ function Tab({ active, icon, label, onClick, accent=C.red }) {
 
 function NavBar({ tab, setTab, tabs, accent }) {
   return (
-    <div style={{ position:"fixed", bottom:0, left:0, right:0, background:"rgba(7,8,12,0.94)",
+    <div style={{ position:"fixed", bottom:0, left:0, right:0, background:"rgba(4,5,10,0.96)",
       backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)",
-      borderTop:`1px solid ${C.border}`, display:"flex", justifyContent:"space-around",
-      padding:"6px 0 env(safe-area-inset-bottom, 20px)", zIndex:100 }}>
+      borderTop:"1px solid rgba(255,255,255,0.06)", display:"flex", justifyContent:"space-around",
+      padding:"8px 0 env(safe-area-inset-bottom, 22px)", zIndex:100, maxWidth:480, margin:"0 auto" }}>
       {tabs.map(t=><Tab key={t.id} active={tab===t.id} icon={t.icon} label={t.label} onClick={()=>setTab(t.id)} accent={accent} />)}
     </div>
   );
@@ -266,6 +266,7 @@ function ProgressBar({ pct, color=C.red, h=6 }) {
 // ═══════════════════════════════════════════
 
 function CustHelp({ go, switchMode }) {
+  const [view, setView] = useState("hero"); // hero | form
   const [form, setForm] = useState({});
   const [checks, setChecks] = useState({});
   const [submitted, setSubmitted] = useState(false);
@@ -294,104 +295,212 @@ function CustHelp({ go, switchMode }) {
     setSubmitted(true);
   };
 
-  return (
-    <div style={{padding:"0 0 110px",position:"relative",minHeight:"100vh"}}>
-      {/* Full background image */}
-      <div style={{
-        position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:0,
-        backgroundImage:"url(/help911-bg.png)",
-        backgroundSize:"cover",backgroundPosition:"center top",backgroundRepeat:"no-repeat",
-      }}>
-        {/* Dark overlay for readability */}
-        <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg, rgba(8,9,14,0.3) 0%, rgba(8,9,14,0.6) 40%, rgba(8,9,14,0.92) 70%, rgba(8,9,14,1) 100%)"}} />
+  // ─── SHARED: Full-bleed dark smoky background ───
+  const BG = ({children, img="/help911-bg.jpg"}) => (
+    <div style={{position:"relative",minHeight:"100vh",paddingBottom:110}}>
+      <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:0}}>
+        <img src={img} alt="" style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center top"}} />
+        <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg, rgba(4,4,10,0.4) 0%, rgba(4,4,10,0.25) 25%, rgba(4,4,10,0.55) 55%, rgba(4,4,10,0.92) 75%, rgba(4,4,10,1) 100%)"}} />
       </div>
-
-      <div style={{position:"relative",zIndex:1,padding:"20px 18px 0"}}>
-      {/* Hero Section */}
-      <div style={{textAlign:"center",paddingTop:180}}>
-        <p style={{...font("DM Sans",11,600,C.accent),letterSpacing:3,textTransform:"uppercase",marginTop:12}}>— Recovery Concierge —</p>
-        <h1 style={{...font("Oswald","clamp(24px,6vw,34px)",700,C.white),marginTop:8,lineHeight:1.15}}>
-          Get Better. Get <span style={{color:C.green}}>Paid</span>.
-        </h1>
-        <p style={{...font("DM Sans",12,400,C.muted),marginTop:8,lineHeight:1.5,maxWidth:320,marginLeft:"auto",marginRight:"auto"}}>
-          Attorneys. Chiropractors. Mental Health. 8 Georgia locations. Zero out-of-pocket costs.
-        </p>
-      </div>
-
-      {/* EMERGENCY CTA */}
-      <div style={{marginTop:20}}>
-        <ShieldBtn icon="📞" label="Call Help 911" sub="24/7 Live Agents" color={C.accent} glow={C.accentGlow} onClick={()=>window.open("tel:18004878911")} />
-      </div>
-
-      {/* 3 SERVICE PILLARS */}
-      <p style={{...font("DM Sans",10,600,C.steel),letterSpacing:2,textTransform:"uppercase",textAlign:"center",marginTop:24,marginBottom:12}}>Choose Your Service</p>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
-        <ShieldBtn icon="⚖️" label="Attorney" sub="The Esquire" color={C.legal} glow={C.legalGlow} onClick={()=>go("attorney")} size="sm" />
-        <ShieldBtn icon="🦴" label="Treatment" sub="Hurt 911" color={C.accent} glow={C.accentGlow} onClick={()=>go("clinics")} size="sm" />
-        <ShieldBtn icon="🧠" label="Mental Health" sub="Mind Studio" color={C.mental} glow={C.mentalGlow} onClick={()=>go("services")} size="sm" />
-      </div>
-
-      {/* Quick Actions Row */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:14}}>
-        <Btn v="secondary" onClick={()=>go("clinics")} icon="📍">Find a Clinic</Btn>
-        <Btn v="ghost" onClick={()=>switchMode()} icon="📊">My Case Status</Btn>
-      </div>
-
-      {/* Trust Badges */}
-      <div style={{display:"flex",gap:6,marginTop:18,overflowX:"auto",paddingBottom:4,justifyContent:"center",flexWrap:"wrap"}}>
-        {["⭐ 4.8 / 816 Reviews","🏆 Best of GA 2025","📍 8 Locations","💰 $0 Cost"].map(t=>(
-          <span key={t} style={{background:`${C.blue}10`,border:`1px solid ${C.blue}20`,borderRadius:20,padding:"5px 12px",whiteSpace:"nowrap",...font("DM Sans",9,500,C.chrome)}}>{t}</span>
-        ))}
-      </div>
-
-      {/* Quick Intake Form */}
-      <Card style={{marginTop:20,borderColor:`${C.accent}15`}}>
-        {submitted ? (
-          <div style={{textAlign:"center",padding:16}}>
-            <span style={{fontSize:44,display:"block",marginBottom:10}}>✅</span>
-            <h3 style={{...font("Oswald",20,600,C.white),marginBottom:6}}>We Got You.</h3>
-            <p style={{...font("DM Sans",13,400,C.muted),lineHeight:1.5}}>A Help 911 agent will call you back within minutes.</p>
-            <Btn v="ghost" full onClick={()=>setSubmitted(false)} style={{marginTop:14}}>Submit Another</Btn>
-          </div>
-        ) : (<>
-          <h3 style={{...font("Oswald",16,600,C.white),marginBottom:4}}>Get Help Now</h3>
-          <p style={{...font("DM Sans",11,400,C.muted),marginBottom:14}}>Fill out and an agent calls you back fast.</p>
-          <Inp label="Your Name" placeholder="Full name" icon="👤" value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} />
-          <Inp label="Phone Number" placeholder="(___) ___-____" type="tel" icon="📱" value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} />
-          <Inp label="Accident Date" type="date" icon="📅" value={form.date} onChange={e=>setForm(p=>({...p,date:e.target.value}))} />
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
-            {[{l:"Need Attorney",c:C.legal},{l:"Need Treatment",c:C.chiro},{l:"Need Mental Health",c:C.mental},{l:"Not Sure",c:C.accent}].map(opt=>(
-              <label key={opt.l} onClick={()=>toggleCheck(opt.l)} style={{
-                display:"flex",alignItems:"center",gap:7,background:checks[opt.l]?`${opt.c}12`:C.bgInput,
-                border:`1px solid ${checks[opt.l]?`${opt.c}40`:C.border}`,
-                borderRadius:8,padding:"9px 10px",cursor:"pointer",transition:"all 0.2s",
-                ...font("DM Sans",11,500,checks[opt.l]?C.white:C.chrome) }}>
-                <div style={{width:14,height:14,borderRadius:3,border:`2px solid ${checks[opt.l]?opt.c:C.chromeDim}`,
-                  background:checks[opt.l]?opt.c:"transparent",display:"flex",alignItems:"center",
-                  justifyContent:"center",fontSize:8,color:"#fff",transition:"all 0.2s",flexShrink:0}}>
-                  {checks[opt.l]?"✓":""}
-                </div>
-                {opt.l}
-              </label>
-            ))}
-          </div>
-          <Btn v="primary" full onClick={handleSubmit} disabled={loading || !form.name || !form.phone}>{loading ? "Submitting..." : "Get Help Now"}</Btn>
-        </>)}
-      </Card>
-
-      {/* Someone I Know Got Hurt */}
-      <div style={{marginTop:14}}>
-        <Btn v="ghost" full icon="❤️‍🩹">Someone I Know Got Hurt</Btn>
-      </div>
-
-      {/* Bottom Trust */}
-      <div style={{display:"flex",justifyContent:"center",gap:20,marginTop:16}}>
-        {["🟢 Open 24/7","⚡ Fast Response","👥 Real Agents"].map(t=>(
-          <span key={t} style={{...font("DM Sans",9,400,C.dim)}}>{t}</span>
-        ))}
-      </div>
-      </div>{/* close relative z-1 wrapper */}
+      <div style={{position:"relative",zIndex:1}}>{children}</div>
     </div>
+  );
+
+  // ═══ HERO SCREEN (Image 2 mockup) ═══
+  if(view==="hero") return (
+    <BG>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 24px",paddingTop:50}}>
+
+        {/* ── HELP 911 Shield Logo ── */}
+        <div style={{position:"relative",marginBottom:8}}>
+          {/* Siren glow */}
+          <div style={{position:"absolute",top:-18,left:"50%",transform:"translateX(-50%)",width:70,height:35,background:"radial-gradient(ellipse, rgba(212,43,43,0.6) 0%, rgba(30,64,175,0.4) 50%, transparent 80%)",filter:"blur(12px)",zIndex:2}} />
+          {/* Siren icon */}
+          <div style={{position:"relative",zIndex:3,textAlign:"center",marginBottom:-10}}>
+            <span style={{fontSize:40}}>🚨</span>
+          </div>
+          {/* Shield background */}
+          <div style={{
+            position:"relative",zIndex:1,width:260,padding:"28px 20px 22px",textAlign:"center",
+            background:"linear-gradient(170deg, rgba(30,64,175,0.35) 0%, rgba(15,18,32,0.9) 40%, rgba(212,43,43,0.2) 100%)",
+            border:"2px solid rgba(200,210,230,0.2)",
+            borderRadius:20,
+            boxShadow:"0 0 60px rgba(212,43,43,0.15), 0 0 60px rgba(30,64,175,0.15), inset 0 1px 0 rgba(255,255,255,0.1)",
+          }}>
+            {/* Chrome border top accent */}
+            <div style={{position:"absolute",top:-1,left:"15%",right:"15%",height:2,background:"linear-gradient(90deg,transparent,rgba(200,210,230,0.5),transparent)",borderRadius:2}} />
+            {/* Stars row */}
+            <div style={{display:"flex",justifyContent:"center",gap:6,marginBottom:8}}>
+              {[...Array(5)].map((_,i)=><span key={i} style={{color:"rgba(200,210,230,0.6)",fontSize:10}}>★</span>)}
+            </div>
+            {/* HELP 911 text */}
+            <div style={{fontFamily:"Oswald,sans-serif",fontWeight:900,fontSize:52,lineHeight:0.95,letterSpacing:2,marginBottom:6}}>
+              <span style={{color:"#E8E8EE",textShadow:"0 2px 8px rgba(0,0,0,0.5)"}}>HELP</span><br/>
+              <span style={{
+                background:"linear-gradient(180deg, #D42B2B 30%, #8B1A1A 100%)",
+                WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",
+                filter:"drop-shadow(0 2px 4px rgba(212,43,43,0.5))",
+                fontSize:64, letterSpacing:4,
+              }}>911</span>
+            </div>
+            {/* Red/blue bar */}
+            <div style={{height:3,borderRadius:2,margin:"8px auto",width:"80%",background:"linear-gradient(90deg, #D42B2B, #1E40AF)"}} />
+          </div>
+        </div>
+
+        {/* ── TAGLINE ── */}
+        <div style={{display:"flex",alignItems:"center",gap:10,marginTop:12,marginBottom:28}}>
+          <div style={{height:1,width:30,background:"linear-gradient(90deg,transparent,rgba(200,210,230,0.3))"}} />
+          <span style={{fontFamily:"DM Sans,sans-serif",fontSize:10,fontWeight:600,letterSpacing:3,color:"rgba(200,210,230,0.5)",textTransform:"uppercase"}}>Emergency Service Recovery Assistance</span>
+          <div style={{height:1,width:30,background:"linear-gradient(90deg,rgba(200,210,230,0.3),transparent)"}} />
+        </div>
+
+        {/* ── 3 SERVICE SHIELDS ── */}
+        <div style={{display:"flex",gap:14,justifyContent:"center",marginBottom:28,width:"100%",maxWidth:340}}>
+          {[
+            {icon:"📞",label:"CALL\n911",color:"#D42B2B",glow:"rgba(212,43,43,0.35)",action:()=>window.open("tel:18004878911")},
+            {icon:"⚖️",label:"ATTORNEY",color:"#C9A84C",glow:"rgba(201,168,76,0.25)",action:()=>go("attorney")},
+            {icon:"🧠",label:"MENTAL\nHEALTH",color:"#3B82F6",glow:"rgba(59,130,246,0.3)",action:()=>go("services")},
+          ].map((s,i)=>(
+            <button key={i} onClick={s.action} style={{
+              flex:1,border:"none",cursor:"pointer",
+              background:`linear-gradient(160deg, ${s.color}30, rgba(14,16,24,0.9))`,
+              borderRadius:16,padding:"18px 8px",textAlign:"center",
+              boxShadow:`0 4px 24px ${s.glow}, inset 0 1px 0 rgba(255,255,255,0.08)`,
+              borderWidth:1.5,borderStyle:"solid",borderColor:`${s.color}40`,
+              position:"relative",overflow:"hidden",
+            }}>
+              {/* Chrome highlight */}
+              <div style={{position:"absolute",top:0,left:"15%",right:"15%",height:1,background:`linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent)`}} />
+              <div style={{
+                width:52,height:52,margin:"0 auto 8px",borderRadius:14,
+                background:`linear-gradient(135deg, ${s.color}40, ${s.color}15)`,
+                border:`1.5px solid ${s.color}50`,
+                display:"flex",alignItems:"center",justifyContent:"center",
+                fontSize:26,boxShadow:`0 4px 16px ${s.glow}`,
+              }}>{s.icon}</div>
+              <div style={{fontFamily:"Oswald,sans-serif",fontSize:11,fontWeight:700,color:"#E8E8EE",letterSpacing:1.5,lineHeight:1.3,textTransform:"uppercase",whiteSpace:"pre-line"}}>{s.label}</div>
+            </button>
+          ))}
+        </div>
+
+        {/* ── FIND A CLINIC button ── */}
+        <button onClick={()=>go("clinics")} style={{
+          width:"100%",maxWidth:340,padding:"16px 20px",borderRadius:14,border:"1px solid rgba(255,255,255,0.12)",
+          background:"rgba(14,16,24,0.85)",cursor:"pointer",display:"flex",alignItems:"center",gap:12,
+          marginBottom:10,backdropFilter:"blur(8px)",
+        }}>
+          <span style={{fontSize:20}}>📍</span>
+          <span style={{fontFamily:"Oswald,sans-serif",fontSize:15,fontWeight:600,color:"#E8E8EE",letterSpacing:1.5,textTransform:"uppercase"}}>Find a Clinic</span>
+        </button>
+
+        {/* ── MY CASE STATUS button ── */}
+        <button onClick={()=>switchMode()} style={{
+          width:"100%",maxWidth:340,padding:"16px 20px",borderRadius:14,border:"1px solid rgba(255,255,255,0.12)",
+          background:"rgba(14,16,24,0.85)",cursor:"pointer",display:"flex",alignItems:"center",gap:12,
+          marginBottom:20,backdropFilter:"blur(8px)",
+        }}>
+          <span style={{fontSize:20}}>📊</span>
+          <span style={{fontFamily:"Oswald,sans-serif",fontSize:15,fontWeight:600,color:"#E8E8EE",letterSpacing:1.5,textTransform:"uppercase"}}>My Case Status</span>
+        </button>
+
+        {/* ── GET HELP NOW CTA (goes to form) ── */}
+        <button onClick={()=>setView("form")} style={{
+          width:"100%",maxWidth:340,padding:"16px",borderRadius:14,border:"none",cursor:"pointer",
+          background:`linear-gradient(135deg,${C.accent},${C.accentDark})`,
+          boxShadow:`0 6px 28px ${C.accentGlow}`,
+          fontFamily:"Oswald,sans-serif",fontSize:16,fontWeight:700,color:"#fff",letterSpacing:1.5,textTransform:"uppercase",
+        }}>🆘 Get Help Now</button>
+
+      </div>
+    </BG>
+  );
+
+  // ═══ FORM SCREEN (Image 1 mockup) ═══
+  return (
+    <BG>
+      <div style={{padding:"0 20px",paddingTop:30}}>
+        {/* Back arrow */}
+        <button onClick={()=>{setView("hero");setSubmitted(false)}} style={{background:"none",border:"none",cursor:"pointer",color:C.muted,fontSize:13,fontFamily:"DM Sans,sans-serif",marginBottom:10,display:"flex",alignItems:"center",gap:6}}>
+          <span style={{fontSize:18}}>←</span> Back
+        </button>
+
+        {/* Siren at top */}
+        <div style={{textAlign:"center",marginBottom:10}}>
+          <div style={{position:"relative",display:"inline-block"}}>
+            <div style={{position:"absolute",top:-5,left:"50%",transform:"translateX(-50%)",width:120,height:40,background:"radial-gradient(ellipse, rgba(212,43,43,0.5) 0%, rgba(30,64,175,0.3) 50%, transparent 80%)",filter:"blur(14px)"}} />
+            <span style={{fontSize:50,position:"relative",zIndex:1}}>🚨</span>
+          </div>
+          {/* Red/blue light bar */}
+          <div style={{height:2,borderRadius:1,margin:"6px auto 0",width:200,background:"linear-gradient(90deg, #D42B2B, rgba(30,64,175,0.8), #D42B2B)",opacity:0.7}} />
+        </div>
+
+        {/* Form Card */}
+        <div style={{
+          background:"rgba(14,16,24,0.88)",border:"1px solid rgba(255,255,255,0.1)",
+          borderRadius:18,padding:"24px 20px",backdropFilter:"blur(12px)",
+          boxShadow:"0 8px 40px rgba(0,0,0,0.5)",
+        }}>
+          {submitted ? (
+            <div style={{textAlign:"center",padding:20}}>
+              <span style={{fontSize:52,display:"block",marginBottom:12}}>✅</span>
+              <h3 style={{...font("Oswald",22,700,C.white),marginBottom:8}}>We Got You.</h3>
+              <p style={{...font("DM Sans",14,400,C.muted),lineHeight:1.6}}>A Help 911 agent will call you back within minutes.</p>
+              <button onClick={()=>{setSubmitted(false);setForm({});setChecks({})}} style={{
+                marginTop:18,background:"none",border:`1px solid ${C.border}`,borderRadius:12,
+                padding:"12px 24px",color:C.chrome,fontFamily:"DM Sans",fontSize:13,fontWeight:600,cursor:"pointer",
+              }}>Submit Another</button>
+            </div>
+          ) : (<>
+            <h2 style={{fontFamily:"Oswald,sans-serif",fontSize:24,fontWeight:700,color:C.white,textAlign:"center",marginBottom:4}}>Get Help Now</h2>
+            <p style={{fontFamily:"DM Sans,sans-serif",fontSize:12,color:C.muted,textAlign:"center",marginBottom:20}}>Fill out and an agent calls you back fast.</p>
+
+            <Inp label="Your Name" placeholder="Full name" icon="👤" value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} />
+            <Inp label="Phone Number" placeholder="(___) ___-____" type="tel" icon="📱" value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} />
+            <Inp label="Accident Date" type="date" icon="📅" value={form.date} onChange={e=>setForm(p=>({...p,date:e.target.value}))} />
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:18}}>
+              {[{l:"Need Attorney",c:C.legal},{l:"Need Treatment",c:C.chiro},{l:"Need Mental Health",c:C.mental},{l:"Not Sure",c:C.accent}].map(opt=>(
+                <label key={opt.l} onClick={()=>toggleCheck(opt.l)} style={{
+                  display:"flex",alignItems:"center",gap:8,
+                  background:checks[opt.l]?`${opt.c}15`:"rgba(26,28,40,0.8)",
+                  border:`1px solid ${checks[opt.l]?`${opt.c}50`:"rgba(255,255,255,0.08)"}`,
+                  borderRadius:10,padding:"11px 12px",cursor:"pointer",transition:"all 0.2s",
+                  fontFamily:"DM Sans,sans-serif",fontSize:12,fontWeight:500,color:checks[opt.l]?C.white:C.chrome,
+                }}>
+                  <div style={{width:16,height:16,borderRadius:4,border:`2px solid ${checks[opt.l]?opt.c:"rgba(107,112,133,0.5)"}`,
+                    background:checks[opt.l]?opt.c:"transparent",display:"flex",alignItems:"center",
+                    justifyContent:"center",fontSize:9,color:"#fff",transition:"all 0.2s",flexShrink:0}}>
+                    {checks[opt.l]?"✓":""}
+                  </div>
+                  {opt.l}
+                </label>
+              ))}
+            </div>
+
+            {/* Red submit button */}
+            <button onClick={handleSubmit} disabled={loading || !form.name || !form.phone} style={{
+              width:"100%",padding:"16px",borderRadius:12,border:"none",cursor:loading||!form.name||!form.phone?"not-allowed":"pointer",
+              background:`linear-gradient(135deg,${C.accent},${C.accentDark})`,
+              boxShadow:`0 6px 28px ${C.accentGlow}`,
+              fontFamily:"Oswald,sans-serif",fontSize:17,fontWeight:700,color:"#fff",letterSpacing:1,
+              opacity:loading||!form.name||!form.phone?0.5:1,transition:"all 0.2s",
+            }}>{loading ? "Submitting..." : "Get Help Now"}</button>
+          </>)}
+        </div>
+
+        {/* Someone I Know Got Hurt */}
+        <button onClick={()=>{}} style={{
+          width:"100%",marginTop:14,padding:"15px 20px",borderRadius:14,
+          background:"rgba(14,16,24,0.8)",border:"1px solid rgba(255,255,255,0.1)",
+          cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,
+          fontFamily:"DM Sans,sans-serif",fontSize:14,fontWeight:600,color:C.chrome,
+          backdropFilter:"blur(8px)",
+        }}>
+          <span>❤️</span> Someone I Know Got Hurt
+        </button>
+      </div>
+    </BG>
   );
 }
 
@@ -1401,7 +1510,7 @@ function CustAttorney({ go }) {
 
 const CUST_TABS = [
   {id:"help",icon:"🆘",label:"Help Now"},{id:"clinics",icon:"📍",label:"Clinics"},
-  {id:"services",icon:"📋",label:"Services"},{id:"next",icon:"📖",label:"Next Steps"},
+  {id:"services",icon:"💼",label:"Services"},{id:"next",icon:"📋",label:"Next Steps"},
 ];
 const CLIENT_TABS = [
   {id:"dashboard",icon:"🏠",label:"Home"},{id:"treatment",icon:"💊",label:"Treatment"},
@@ -1540,7 +1649,7 @@ function Help911App() {
           .safe-top{padding-top:env(safe-area-inset-top)}
         }
       `}</style>
-      <div style={{maxWidth:430,margin:"0 auto",background:C.bg,minHeight:"100vh",position:"relative",fontFamily:"DM Sans,sans-serif",overflowX:"hidden"}}>
+      <div style={{maxWidth:480,margin:"0 auto",background:C.bg,minHeight:"100vh",minHeight:"100dvh",position:"relative",fontFamily:"DM Sans,sans-serif",overflowX:"hidden"}}>
         {/* Status bar accent */}
         <div className="safe-top" style={{position:"sticky",top:0,zIndex:50,height:3,background:`linear-gradient(90deg,${accent},transparent)`}}/>
 
