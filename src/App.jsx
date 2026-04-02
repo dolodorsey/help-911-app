@@ -1538,6 +1538,7 @@ function Help911App() {
   const [repSession, setRepSession] = useState(null);
   const [clientSession, setClientSession] = useState(null);
   const [resetSent, setResetSent] = useState(false);
+  const [legalView, setLegalView] = useState(null);
 
   // Auth constants (using MCP Gateway Supabase — help911 tables are here)
   const H_SB='https://dzlmtvodpyhetvektfuo.supabase.co';
@@ -1664,13 +1665,22 @@ function Help911App() {
         </div>
 
         {AuthOverlay}
+        {legalView&&<div style={{position:'fixed',inset:0,zIndex:200,background:'rgba(7,8,12,0.97)',overflowY:'auto',padding:'50px 16px 40px'}} onClick={()=>setLegalView(null)}>
+          <div onClick={e=>e.stopPropagation()} style={{maxWidth:420,margin:'0 auto',background:C.bgCard,borderRadius:20,padding:'20px 16px',border:`1px solid ${C.border}`}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+              <div style={{...font('Oswald',17,700,C.white)}}>{legalView==='terms'?'Terms of Service':'Privacy Policy'}</div>
+              <button onClick={()=>setLegalView(null)} style={{background:'none',border:'none',color:C.dim,fontSize:18,cursor:'pointer'}}>{'\u2715'}</button>
+            </div>
+            <div style={{fontSize:11,color:C.muted,lineHeight:1.8,whiteSpace:'pre-wrap'}}>{legalView==='terms'?'TERMS OF SERVICE \u2014 The Kollective Hospitality Group\nLast Updated: April 2, 2026\n\n1. ACCEPTANCE\nBy using Help 911, you agree to these Terms.\n\n2. ELIGIBILITY\nMust be 18+.\n\n3. SERVICES\nHelp 911 is a recovery concierge connecting accident victims with attorneys, treatment providers, and transportation.\n\n4. DISCLAIMER\nKHG facilitates connections. We are not a law firm, medical provider, or insurance company. We do not provide legal or medical advice.\n\n5. HEALTH INFORMATION\nAccident and injury information shared only with your authorized legal and medical providers.\n\n6. LIMITATION OF LIABILITY\nKHG shall not be liable for indirect or consequential damages.\n\n7. GOVERNING LAW\nGeorgia, United States.\n\n8. CONTACT\nthedoctordorsey@gmail.com':'PRIVACY POLICY \u2014 The Kollective Hospitality Group\nLast Updated: April 2, 2026\n\n1. WE COLLECT\nName, phone, email, accident details, injury info, insurance info, treatment history.\n\n2. HOW WE USE IT\nTo connect you with attorneys and treatment providers, coordinate transportation, and process your case.\n\n3. HEALTH DATA\nShared ONLY with your matched attorney and medical providers with your consent.\n\n4. SHARING\nDo not sell. Share with legal/medical partners for your case and law enforcement when required.\n\n5. SECURITY\nEncryption, HIPAA-aware practices, access controls.\n\n6. YOUR RIGHTS\nAccess, correct, delete your data.\n\n7. CONTACT\nthedoctordorsey@gmail.com'}</div>
+          </div>
+        </div>}
         {screens[tab] || screens.help}
         {/* Legal + Sign Out for authenticated portals */}
         {(mode==='rep'||mode==='client')&&(
           <div style={{padding:'12px 18px 90px',textAlign:'center'}}>
             <div style={{display:'flex',justifyContent:'center',gap:16,marginBottom:8}}>
-              <button onClick={()=>window.open('https://thekollectivehospitalitygroup.com/terms','_blank')} style={{background:'none',border:'none',color:C.dim,fontSize:10,cursor:'pointer',fontFamily:'DM Sans,sans-serif',textDecoration:'underline'}}>Terms of Service</button>
-              <button onClick={()=>window.open('https://thekollectivehospitalitygroup.com/privacy','_blank')} style={{background:'none',border:'none',color:C.dim,fontSize:10,cursor:'pointer',fontFamily:'DM Sans,sans-serif',textDecoration:'underline'}}>Privacy Policy</button>
+              <button onClick={()=>setLegalView('terms')} style={{background:'none',border:'none',color:C.dim,fontSize:10,cursor:'pointer',fontFamily:'DM Sans,sans-serif',textDecoration:'underline'}}>Terms of Service</button>
+              <button onClick={()=>setLegalView('privacy')} style={{background:'none',border:'none',color:C.dim,fontSize:10,cursor:'pointer',fontFamily:'DM Sans,sans-serif',textDecoration:'underline'}}>Privacy Policy</button>
             </div>
             <button onClick={()=>{if(mode==='rep'){setRepSession(null);localStorage.removeItem('h911_rep');}else{setClientSession(null);localStorage.removeItem('h911_client');}setMode('public');setTab('help');}} style={{background:'none',border:`1px solid ${C.accent}30`,color:C.accent,borderRadius:10,padding:'8px 20px',fontSize:12,cursor:'pointer',fontFamily:'DM Sans,sans-serif',fontWeight:600}}>Sign Out</button>
           </div>
