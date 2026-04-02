@@ -1,5 +1,19 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { submitLead, submitAttorneyIntake } from "./api.js";
+
+/* ═══ ERROR BOUNDARY ═══ */
+class H911ErrorBoundary extends React.Component{
+  constructor(p){super(p);this.state={hasError:false};}
+  static getDerivedStateFromError(){return{hasError:true};}
+  render(){
+    if(this.state.hasError)return React.createElement('div',{style:{minHeight:'100vh',background:'#07080C',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',fontFamily:"'DM Sans',sans-serif",color:'#fff',padding:24,textAlign:'center'}},
+      React.createElement('div',{style:{fontSize:40,marginBottom:16}},'\u26A0\uFE0F'),
+      React.createElement('h2',{style:{fontSize:20,fontWeight:700,marginBottom:8}},'Something went wrong'),
+      React.createElement('button',{onClick:()=>{this.setState({hasError:false});window.location.reload()},style:{background:'#ef4444',color:'#fff',border:'none',borderRadius:14,padding:'14px 32px',fontSize:16,fontWeight:700,cursor:'pointer'}},'Reload App')
+    );
+    return this.props.children;
+  }
+}
 
 // ═══════════════════════════════════════════════════════════════
 // HELP 911 — RECOVERY CONCIERGE APP
@@ -1388,26 +1402,109 @@ const REP_TABS = [
   {id:"notif",icon:"🔔",label:"Alerts"},
 ];
 
-export default function Help911App() {
+function Help911AppExport(){return React.createElement(H911ErrorBoundary,null,React.createElement(Help911App));}
+export {Help911AppExport as default};
+function Help911App() {
   const [mode, setMode] = useState("public"); // public | client | rep
   const [tab, setTab] = useState("help");
+  const [authScreen, setAuthScreen] = useState(null); // null | 'client-login' | 'rep-login'
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPw, setAuthPw] = useState('');
+  const [authName, setAuthName] = useState('');
+  const [authErr, setAuthErr] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authMode, setAuthMode] = useState('signin'); // signin | signup
+  const [repSession, setRepSession] = useState(null);
+  const [clientSession, setClientSession] = useState(null);
+  const [resetSent, setResetSent] = useState(false);
+
+  // Auth constants (using MCP Gateway Supabase — help911 tables are here)
+  const H_SB='https://dzlmtvodpyhetvektfuo.supabase.co';
+  const H_SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6bG10dm9kcHloZXR2ZWt0ZnVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1ODQ4NjQsImV4cCI6MjA4NTE2MDg2NH0.qmnWB4aWdb7U8Iod9Hv8PQAOJO3AG0vYEGnPS--kfAo';
+
+  // Check stored sessions on mount
+  useEffect(()=>{
+    try{const rs=JSON.parse(localStorage.getItem('h911_rep'));if(rs?.access_token)setRepSession(rs);}catch{}
+    try{const cs=JSON.parse(localStorage.getItem('h911_client'));if(cs?.access_token)setClientSession(cs);}catch{}
+  },[]);
+
+  const doAuth=async(targetMode)=>{
+    if(authLoading)return;setAuthLoading(true);setAuthErr('');
+    try{
+      if(authMode==='signup'){
+        const sr=await fetch(`${H_SB}/auth/v1/signup`,{method:'POST',headers:{'Content-Type':'application/json',apikey:H_SK},body:JSON.stringify({email:authEmail,password:authPw,data:{full_name:authName,role:targetMode}})});
+        const sd=await sr.json();if(sd.error||sd.msg)throw new Error(sd.error_description||sd.msg||sd.error);
+      }
+      const r=await fetch(`${H_SB}/auth/v1/token?grant_type=password`,{method:'POST',headers:{'Content-Type':'application/json',apikey:H_SK,Authorization:`Bearer ${H_SK}`},body:JSON.stringify({email:authEmail,password:authPw})});
+      const d=await r.json();if(d.error||d.msg)throw new Error(d.error_description||d.msg||d.error);
+      if(targetMode==='rep'){setRepSession(d);localStorage.setItem('h911_rep',JSON.stringify(d));setMode('rep');setTab('rep-dash');}
+      else{setClientSession(d);localStorage.setItem('h911_client',JSON.stringify(d));setMode('client');setTab('dashboard');}
+      setAuthScreen(null);setAuthEmail('');setAuthPw('');setAuthName('');
+    }catch(e){let m=e.message;if(m.includes('Invalid login'))m='Wrong email or password';if(m.includes('already registered'))m='Already registered — try Sign In';setAuthErr(m);}
+    finally{setAuthLoading(false);}
+  };
+
+  const doReset=async()=>{
+    if(!authEmail){setAuthErr('Enter your email');return;}
+    setAuthLoading(true);setAuthErr('');
+    try{await fetch(`${H_SB}/auth/v1/recover`,{method:'POST',headers:{'Content-Type':'application/json',apikey:H_SK},body:JSON.stringify({email:authEmail})});setResetSent(true);}
+    catch{setAuthErr('Failed to send reset email');}
+    finally{setAuthLoading(false);}
+  };
 
   const go = (t) => {
-    // auto-switch mode if needed
-    if(["dashboard","treatment","case","docs","transport"].includes(t) && mode==="public") setMode("client");
-    if(["rep-dash","leads","schedule","cases","notif"].includes(t) && mode!=="rep") setMode("rep");
+    if(["dashboard","treatment","case","docs","transport"].includes(t)){
+      if(!clientSession){setAuthScreen('client-login');setAuthMode('signin');setAuthErr('');return;}
+      if(mode==="public")setMode("client");
+    }
+    if(["rep-dash","leads","schedule","cases","notif"].includes(t)){
+      if(!repSession){setAuthScreen('rep-login');setAuthMode('signin');setAuthErr('');return;}
+      if(mode!=="rep")setMode("rep");
+    }
     if(t==="help" && mode==="client") setMode("public");
     setTab(t);
   };
 
   const switchMode = () => {
-    if(mode==="public"){ setMode("client"); setTab("dashboard"); }
-    else if(mode==="client"){ setMode("rep"); setTab("rep-dash"); }
-    else { setMode("public"); setTab("help"); }
+    if(mode==="public"){
+      if(clientSession){setMode("client");setTab("dashboard");}
+      else{setAuthScreen('client-login');setAuthMode('signin');setAuthErr('');}
+    }else if(mode==="client"){
+      if(repSession){setMode("rep");setTab("rep-dash");}
+      else{setAuthScreen('rep-login');setAuthMode('signin');setAuthErr('');}
+    }else{setMode("public");setTab("help");}
   };
 
   const tabs = mode==="rep"?REP_TABS:mode==="client"?CLIENT_TABS:CUST_TABS;
   const accent = mode==="rep"?C.blue:C.accent;
+  const authTarget = authScreen==='rep-login'?'rep':'client';
+  const authColor = authTarget==='rep'?C.blue:C.green;
+  const authLabel = authTarget==='rep'?'Agent Portal':'Client Portal';
+
+  // AUTH OVERLAY
+  const AuthOverlay = authScreen ? (
+    <div style={{position:'fixed',inset:0,background:'rgba(7,8,12,0.97)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
+      <div style={{width:'100%',maxWidth:380}}>
+        <div style={{textAlign:'center',marginBottom:24}}>
+          <div style={{fontSize:12,letterSpacing:3,color:authColor,fontWeight:700,marginBottom:8}}>{authLabel.toUpperCase()}</div>
+          <div style={{fontSize:22,fontWeight:800,color:C.white}}>Sign In Required</div>
+          <div style={{fontSize:13,color:C.muted,marginTop:4}}>{authTarget==='rep'?'Authorized agents only':'Access your case details'}</div>
+        </div>
+        {/* Mode toggle */}
+        <div style={{display:'flex',background:C.bgCard,borderRadius:12,padding:3,marginBottom:16}}>
+          {['signin','signup'].map(m=><button key={m} onClick={()=>{setAuthMode(m);setAuthErr('');setResetSent(false)}} style={{flex:1,padding:'10px',borderRadius:10,border:'none',cursor:'pointer',fontSize:13,fontWeight:700,fontFamily:'DM Sans,sans-serif',background:authMode===m?C.bg:'transparent',color:authMode===m?C.white:C.dim}}>{m==='signin'?'Sign In':'Sign Up'}</button>)}
+        </div>
+        {authMode==='signup'&&<input value={authName} onChange={e=>setAuthName(e.target.value)} placeholder="Full Name" style={{width:'100%',padding:'14px 16px',background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,color:C.white,fontSize:14,outline:'none',boxSizing:'border-box',fontFamily:'DM Sans,sans-serif',marginBottom:10}}/>}
+        <input type="email" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} placeholder="Email" style={{width:'100%',padding:'14px 16px',background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,color:C.white,fontSize:14,outline:'none',boxSizing:'border-box',fontFamily:'DM Sans,sans-serif',marginBottom:10}}/>
+        <input type="password" value={authPw} onChange={e=>setAuthPw(e.target.value)} placeholder="Password" style={{width:'100%',padding:'14px 16px',background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,color:C.white,fontSize:14,outline:'none',boxSizing:'border-box',fontFamily:'DM Sans,sans-serif',marginBottom:14}}/>
+        {authErr&&<div style={{padding:'10px 14px',background:'rgba(239,68,68,.12)',border:'1px solid rgba(239,68,68,.3)',borderRadius:12,marginBottom:12,fontSize:13,color:C.accent,fontWeight:600}}>{authErr}</div>}
+        {resetSent&&<div style={{padding:'10px 14px',background:'rgba(16,185,129,.12)',borderRadius:12,marginBottom:12,fontSize:13,color:C.green,fontWeight:600}}>{'\u2709\uFE0F'} Reset email sent to {authEmail}</div>}
+        <button onClick={()=>doAuth(authTarget)} disabled={authLoading} style={{width:'100%',padding:'16px',background:authColor,color:'#fff',border:'none',borderRadius:14,fontSize:16,fontWeight:700,cursor:'pointer',fontFamily:'DM Sans,sans-serif'}}>{authLoading?'...':(authMode==='signup'?'Create Account':'Sign In')}</button>
+        {authMode==='signin'&&!resetSent&&<button onClick={doReset} style={{background:'none',border:'none',color:C.muted,fontSize:12,cursor:'pointer',fontFamily:'DM Sans,sans-serif',marginTop:10,width:'100%',textAlign:'center'}}>Forgot password?</button>}
+        <button onClick={()=>{setAuthScreen(null);setAuthErr('');setResetSent(false)}} style={{background:'none',border:'none',color:C.dim,fontSize:13,cursor:'pointer',fontFamily:'DM Sans,sans-serif',marginTop:12,width:'100%',textAlign:'center'}}>Cancel</button>
+      </div>
+    </div>
+  ) : null;
 
   const screens = {
     help:<CustHelp go={go} switchMode={switchMode} />,
@@ -1435,20 +1532,17 @@ export default function Help911App() {
         {/* Status bar accent */}
         <div className="safe-top" style={{position:"sticky",top:0,zIndex:50,height:3,background:`linear-gradient(90deg,${accent},transparent)`}}/>
 
-        {/* Mode Switcher */}
+        {/* Mode Switcher — Rep and Client require authentication */}
         <div style={{position:"fixed",top:8,right:8,zIndex:101,display:"flex",gap:4}}>
-          {["public","client","rep"].map(m=>(
-            <button key={m} onClick={()=>{setMode(m);setTab(m==="public"?"help":m==="client"?"dashboard":"rep-dash")}}
-              style={{
-                background:mode===m?(m==="rep"?`${C.blue}20`:m==="client"?`${C.green}20`:C.bgCard):C.bgCard,
-                border:`1px solid ${mode===m?(m==="rep"?`${C.blue}40`:m==="client"?`${C.green}40`:C.border):C.border}`,
-                color:mode===m?(m==="rep"?C.blueLight:m==="client"?C.green:C.muted):C.dim,
-                ...font("DM Sans",9,600), padding:"5px 10px", borderRadius:16, cursor:"pointer",
-                letterSpacing:0.4, textTransform:"uppercase", transition:"all 0.2s"
-              }}>{m==="rep"?"🔵 Rep":m==="client"?"🟢 Client":"Public"}</button>
-          ))}
+          <button onClick={()=>{setMode("public");setTab("help")}}
+            style={{background:mode==="public"?C.bgCard:C.bgCard,border:`1px solid ${mode==="public"?C.border:C.border}`,color:mode==="public"?C.muted:C.dim,...font("DM Sans",9,600),padding:"5px 10px",borderRadius:16,cursor:"pointer",letterSpacing:0.4,textTransform:"uppercase",transition:"all 0.2s"}}>Public</button>
+          <button onClick={()=>{if(clientSession){setMode("client");setTab("dashboard");}else{setAuthScreen('client-login');setAuthMode('signin');setAuthErr('');setResetSent(false);}}}
+            style={{background:mode==="client"?`${C.green}20`:C.bgCard,border:`1px solid ${mode==="client"?`${C.green}40`:C.border}`,color:mode==="client"?C.green:C.dim,...font("DM Sans",9,600),padding:"5px 10px",borderRadius:16,cursor:"pointer",letterSpacing:0.4,textTransform:"uppercase",transition:"all 0.2s"}}>{'\u{1F7E2}'} Client</button>
+          <button onClick={()=>{if(repSession){setMode("rep");setTab("rep-dash");}else{setAuthScreen('rep-login');setAuthMode('signin');setAuthErr('');setResetSent(false);}}}
+            style={{background:mode==="rep"?`${C.blue}20`:C.bgCard,border:`1px solid ${mode==="rep"?`${C.blue}40`:C.border}`,color:mode==="rep"?C.blueLight:C.dim,...font("DM Sans",9,600),padding:"5px 10px",borderRadius:16,cursor:"pointer",letterSpacing:0.4,textTransform:"uppercase",transition:"all 0.2s"}}>{'\u{1F535}'} Rep</button>
         </div>
 
+        {AuthOverlay}
         {screens[tab] || screens.help}
         <NavBar tab={tab} setTab={go} tabs={tabs} accent={accent} />
       </div>
