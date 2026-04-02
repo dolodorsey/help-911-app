@@ -22,13 +22,43 @@ const font = (f="DM Sans", s=14, w=400, c=C.white) => ({
   fontFamily: `${f}, sans-serif`, fontSize: s, fontWeight: w, color: c, margin: 0
 });
 
-// ─── DATA ───
+// ─── DATA (from 1800hurt911ga.com) ───
 const CLINICS = [
-  { id:1, name:"Stonecrest Clinic", addr:"5745 Hillandale Dr, Lithonia GA", phone:"(770) 808-1234", svc:["Chiro","PT","MRI"], hrs:"M-F 8A-6P", dist:"2.3 mi" },
-  { id:2, name:"Decatur Recovery", addr:"2501 N Decatur Rd, Decatur GA", phone:"(404) 555-0911", svc:["Accident MD","X-Ray","Diagnostics"], hrs:"M-Sa 7A-7P", dist:"4.1 mi" },
-  { id:3, name:"Midtown Care Center", addr:"1100 Peachtree St NE, Atlanta GA", phone:"(404) 555-1911", svc:["PT","Chiro","Pain Mgmt"], hrs:"M-F 9A-5P", dist:"7.8 mi" },
-  { id:4, name:"South DeKalb Accident Care", addr:"2862 Candler Rd, Decatur GA", phone:"(470) 555-0911", svc:["Chiro","MRI","X-Ray"], hrs:"M-F 8A-6P, Sa 9A-2P", dist:"5.2 mi" },
+  { id:1, name:"Downtown Atlanta", addr:"147 North Avenue NE, Atlanta GA 30308", area:"Atlanta / Midtown / Buckhead / East Atlanta", phone:"(404) 998-4223", svc:["Chiro","Accident Doctor","Whiplash","PT","X-Ray","MRI","Attorney Referrals"], hrs:"Mon-Fri 9AM-6PM", dist:"2.1 mi" },
+  { id:2, name:"Westside Atlanta", addr:"1465 Westwood Ave, Atlanta GA 30310", area:"Atlanta / West End / Cascade", phone:"(404) 334-5833", svc:["Chiro","Accident Doctor","PT","Diagnostics","Attorney Referrals"], hrs:"Mon-Fri 9AM-6PM", dist:"4.8 mi" },
+  { id:3, name:"Lithonia - Stonecrest", addr:"5700 Hillandale Dr #190, Lithonia GA 30058", area:"Lithonia / Stonecrest", phone:"(770) 501-5916", svc:["Chiro","Accident Doctor","Whiplash","PT","X-Ray","MRI","Attorney Referrals"], hrs:"Mon-Fri 9AM-6PM", dist:"15.2 mi" },
+  { id:4, name:"South DeKalb", addr:"1336 Columbia Drive, Suite B, Decatur GA 30032", area:"Decatur", phone:"(404) 900-0443", svc:["Chiro","Accident Doctor","PT","Diagnostics","Attorney Referrals"], hrs:"Mon-Fri 9AM-6PM", dist:"6.3 mi" },
+  { id:5, name:"Henry - Spaulding", addr:"1515 Pennsylvania Ave, McDonough GA 30253", area:"McDonough / Griffin / Locust Grove", phone:"(678) 276-7429", svc:["Chiro","Accident Doctor","PT","X-Ray","Attorney Referrals"], hrs:"Mon-Fri 9AM-6PM", dist:"28.1 mi" },
+  { id:6, name:"Clayton County", addr:"7147 Jonesboro Rd, Suite J, Morrow GA 30260", area:"Morrow / Jonesboro / Riverdale / Stockbridge", phone:"(678) 562-6063", svc:["Chiro","Accident Doctor","PT","Diagnostics","Attorney Referrals"], hrs:"Mon-Fri 9AM-6PM", dist:"12.7 mi" },
+  { id:7, name:"Lawrenceville", addr:"359 W Pike St, Lawrenceville GA 30046", area:"Lawrenceville / Gwinnett", phone:"(678) 338-8417", svc:["Chiro","Accident Doctor","PT","X-Ray","Attorney Referrals"], hrs:"Mon-Fri 9AM-6PM", dist:"30.4 mi" },
+  { id:8, name:"Chamblee", addr:"5255 Peachtree Blvd, Atlanta GA 30341", area:"Chamblee / Brookhaven", phone:"(770) 790-4916", svc:["Chiro","Accident Doctor","PT","Diagnostics","Attorney Referrals"], hrs:"Mon-Fri 9AM-6PM", dist:"11.2 mi" },
 ];
+
+const ACCIDENT_TYPES = [
+  {icon:"🚗",t:"Car Accidents"},{icon:"🚛",t:"Big Truck Accidents"},{icon:"🏍️",t:"Motorcycle Accidents"},
+  {icon:"🚌",t:"MARTA Accidents"},{icon:"🛴",t:"Scooter Accidents"},{icon:"🚕",t:"Uber & Lyft Accidents"},
+  {icon:"🚶",t:"Pedestrian Accidents"},{icon:"💥",t:"Hit & Run Accidents"},
+  {icon:"⚠️",t:"Slip & Fall Accidents"},{icon:"🚲",t:"Bicycle Accidents"},{icon:"🍺",t:"Drunk Driving Accidents"},
+];
+
+const SERVICES = [
+  {icon:"🩺",t:"Car Accident Doctor",d:"Specialized physicians trained in diagnosing and treating auto accident injuries."},
+  {icon:"🦴",t:"Whiplash Chiropractor",d:"Expert chiropractic care for whiplash, spinal misalignment, and neck injuries."},
+  {icon:"💪",t:"Physical Therapy",d:"Rehabilitation programs to restore mobility, strength, and function after injury."},
+  {icon:"⚖️",t:"Attorney Referrals",d:"Connected to top personal injury attorneys who fight for your compensation."},
+  {icon:"🔬",t:"Diagnostics",d:"Comprehensive diagnostic services including on-site evaluation."},
+  {icon:"📡",t:"MRI / X-Ray",d:"Advanced imaging to identify fractures, soft tissue damage, and internal injuries."},
+  {icon:"🚗",t:"Free Transportation",d:"Complimentary rides to and from your appointments — no excuses to miss treatment."},
+  {icon:"🔑",t:"Rental Car Assistance",d:"Help securing and covering the costs of a rental car through insurance."},
+];
+
+const TESTIMONIALS = [
+  {name:"Antione Lewis",text:"I was in a car accident on the highway and immediately called. They made sure I was ok, scheduled treatment near me in Decatur, and had an attorney handle my legal case. They managed the entire process and helped me get a great settlement."},
+  {name:"Pastor Troy",text:"I've had a few accidents over the years and always called. The doctor always got me squared away with professional care and attention. They got me back whole and the attorneys got me paid!"},
+  {name:"Shay Mccray",text:"When my son was in an accident I called and they were there on the first ring. Finding a lawyer, going to the doctor, lost wages — they took care of everything for me. I made only one call and they started working on my behalf."},
+];
+
+const STATS = {label:"Voted Best of Georgia 2025",rating:"4.8",reviews:"816",cases:"Tens of Thousands",recovered:"Hundreds of Millions"};
 
 const LEADS = [
   { id:1, name:"Marcus Johnson", phone:"(404) 555-1234", date:"Apr 1", needs:["Treatment","Attorney"], status:"New", urgency:"high" },
@@ -190,12 +220,19 @@ function CustHelp({ go, switchMode }) {
 
       <div style={{marginTop:28}}>
         <h1 style={{...font("Oswald","clamp(26px,7vw,38px)",700,C.white),lineHeight:1.1}}>
-          Hurt in an accident?<br/>
-          <span style={{color:C.chrome,fontWeight:400}}>Get help right now.</span>
+          Georgia's Accident<br/>Recovery Team.
         </h1>
+        <p style={{...font("Oswald",16,400,C.chrome),marginTop:6,lineHeight:1.2}}>Get Better. Get Paid.</p>
         <p style={{...font("DM Sans",13,400,C.muted),marginTop:10,lineHeight:1.6}}>
-          Talk to a live team member. Get connected to treatment. Find a clinic. Request a ride. We guide you through every step.
+          Chiropractors, accident doctors, and attorney referrals. 8 locations across Georgia. Zero out-of-pocket costs. Free transportation. 24/7 support.
         </p>
+      </div>
+
+      {/* Trust Row */}
+      <div style={{display:"flex",gap:8,marginTop:16,overflowX:"auto",paddingBottom:4}}>
+        {["⭐ 4.8 Rating","🏆 Best of GA 2025","📍 8 Locations","💰 $0 Out of Pocket"].map(t=>(
+          <span key={t} style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:20,padding:"5px 12px",whiteSpace:"nowrap",...font("DM Sans",10,500,C.chrome)}}>{t}</span>
+        ))}
       </div>
 
       <div style={{marginTop:24}}>
@@ -261,14 +298,15 @@ function CustClinics() {
   return (
     <div style={{padding:"20px 18px 110px"}}>
       <Logo size="sm" />
-      <Section title="Find a Clinic Near You" sub="Georgia's largest accident treatment network.">
+      <Section title="Find a Clinic Near You" sub="8 injury centers across Georgia. Free transportation available.">
         <div style={{background:`linear-gradient(135deg,${C.bgSurface},${C.bg})`,borderRadius:14,
-          height:160,display:"flex",alignItems:"center",justifyContent:"center",
+          height:140,display:"flex",alignItems:"center",justifyContent:"center",
           border:`1px solid ${C.border}`,marginBottom:18,position:"relative",overflow:"hidden"}}>
           <div style={{position:"absolute",inset:0,background:`radial-gradient(circle at 40% 50%,${C.redGlow},transparent 60%)`}}/>
           <div style={{textAlign:"center",zIndex:1}}>
             <span style={{fontSize:32}}>📍</span>
-            <p style={{...font("DM Sans",12,400,C.muted),marginTop:6}}>{CLINICS.length} clinics near Atlanta, GA</p>
+            <p style={{...font("Oswald",18,600,C.white),marginTop:6}}>8 Locations Across Georgia</p>
+            <p style={{...font("DM Sans",11,400,C.muted),marginTop:2}}>Free transportation to every location</p>
           </div>
         </div>
         {CLINICS.map(c=>(
@@ -276,44 +314,52 @@ function CustClinics() {
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
               <div>
                 <h3 style={{...font("Oswald",15,600,C.white)}}>{c.name}</h3>
-                <p style={{...font("DM Sans",11,400,C.muted),marginTop:3}}>{c.addr}</p>
+                <p style={{...font("DM Sans",11,400,C.muted),marginTop:2}}>{c.area||c.addr}</p>
               </div>
               <Badge text={c.dist} color={C.blue} sm />
             </div>
             {sel===c.id&&(
               <div style={{marginTop:14,paddingTop:14,borderTop:`1px solid ${C.border}`}}>
+                <p style={{...font("DM Sans",12,400,C.chrome),marginBottom:3}}>📍 {c.addr}</p>
                 <p style={{...font("DM Sans",12,400,C.chrome),marginBottom:3}}>📞 {c.phone}</p>
                 <p style={{...font("DM Sans",12,400,C.chrome),marginBottom:8}}>🕐 {c.hrs}</p>
                 <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:12}}>
                   {c.svc.map(s=><span key={s} style={{background:`${C.red}12`,color:C.redLight,...font("DM Sans",9,600),padding:"3px 8px",borderRadius:10}}>{s}</span>)}
                 </div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                  <Btn v="primary" small>Book Visit</Btn>
-                  <Btn v="secondary" small icon="🚗">Get a Ride</Btn>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
+                  <Btn v="primary" small onClick={(e)=>{e.stopPropagation();window.open(`tel:${c.phone.replace(/\D/g,'')}`)}}>📞 Call</Btn>
+                  <Btn v="success" small onClick={(e)=>{e.stopPropagation()}}>Book Visit</Btn>
+                  <Btn v="secondary" small icon="🚗" onClick={(e)=>{e.stopPropagation()}}>Ride</Btn>
                 </div>
               </div>
             )}
           </Card>
         ))}
+        <Card style={{marginTop:8,textAlign:"center",padding:16,background:`linear-gradient(135deg,${C.bgCard},${C.bgSurface})`}}>
+          <p style={{...font("DM Sans",12,400,C.chrome)}}>🚗 Can't get to a clinic?</p>
+          <p style={{...font("Oswald",15,600,C.white),marginTop:4}}>FREE TRANSPORTATION</p>
+          <p style={{...font("DM Sans",11,400,C.muted),marginTop:4,marginBottom:10}}>If you're unable to drive due to injury or vehicle damage, we'll arrange your ride.</p>
+          <Btn v="primary" full onClick={()=>window.open("tel:18004878911")}>Call for a Ride</Btn>
+        </Card>
       </Section>
     </div>
   );
 }
 
 function CustServices({go}) {
-  const svc = [
-    {icon:"⚖️",t:"Attorney Referral",d:"Experienced personal injury attorneys who fight for your compensation."},
-    {icon:"🏥",t:"Medical Treatment",d:"Chiropractic, PT, diagnostics, MRI, and X-ray at Georgia clinics."},
-    {icon:"🚗",t:"Transportation",d:"Rides to and from treatment. Never miss an appointment."},
-    {icon:"📍",t:"Clinic Access",d:"Multi-location network across Georgia — closest clinic to you."},
-    {icon:"📄",t:"Case Management",d:"Plain-English updates. No legal jargon, no guessing."},
-    {icon:"📞",t:"24/7 Live Support",d:"Real agents, not automated systems. Call anytime."},
-  ];
+  const [showAccidents, setShowAccidents] = useState(false);
   return (
     <div style={{padding:"20px 18px 110px"}}>
       <Logo size="sm" />
-      <Section title="How We Help" sub="Everything you need after an accident — one team.">
-        {svc.map((s,i)=>(
+
+      {/* Trust Badge */}
+      <Card style={{marginTop:16,marginBottom:16,textAlign:"center",padding:14,background:`linear-gradient(135deg,#1A1408,${C.bgCard})`}}>
+        <p style={{...font("Oswald",13,600,C.orange),letterSpacing:1}}>⭐ {STATS.label}</p>
+        <p style={{...font("DM Sans",11,400,C.muted),marginTop:4}}>Rated {STATS.rating}/5 based on {STATS.reviews} reviews</p>
+      </Card>
+
+      <Section title="Our Services" sub="Georgia chiropractors, accident doctors, and attorney referrals. Zero out-of-pocket costs.">
+        {SERVICES.map((s,i)=>(
           <Card key={i} style={{marginBottom:10}}>
             <div style={{display:"flex",gap:12}}>
               <div style={{width:40,height:40,borderRadius:10,background:`${C.red}10`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{s.icon}</div>
@@ -324,19 +370,61 @@ function CustServices({go}) {
             </div>
           </Card>
         ))}
-        <Btn v="primary" full icon="📞" onClick={()=>window.open("tel:18004878911")}>Call Me Now</Btn>
       </Section>
+
+      {/* Accident Types */}
+      <Section title="Accidents We Help With" right={
+        <button onClick={()=>setShowAccidents(!showAccidents)} style={{background:"none",border:"none",cursor:"pointer",...font("DM Sans",11,600,C.red)}}>{showAccidents?"Hide":"Show All"}</button>
+      }>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+          {(showAccidents ? ACCIDENT_TYPES : ACCIDENT_TYPES.slice(0,6)).map((a,i)=>(
+            <Card key={i} style={{padding:12,textAlign:"center"}}>
+              <span style={{fontSize:22,display:"block",marginBottom:4}}>{a.icon}</span>
+              <span style={{...font("DM Sans",10,500,C.chrome)}}>{a.t}</span>
+            </Card>
+          ))}
+        </div>
+      </Section>
+
+      {/* Testimonials */}
+      <Section title="From Our Patients">
+        {TESTIMONIALS.map((t,i)=>(
+          <Card key={i} style={{marginBottom:10}}>
+            <div style={{display:"flex",gap:4,marginBottom:8}}>
+              {[1,2,3,4,5].map(s=><span key={s} style={{fontSize:12,color:"#F59E0B"}}>★</span>)}
+            </div>
+            <p style={{...font("DM Sans",12,400,C.chrome),lineHeight:1.6,fontStyle:"italic"}}>"{t.text}"</p>
+            <p style={{...font("Oswald",13,600,C.white),marginTop:8}}>— {t.name}</p>
+          </Card>
+        ))}
+      </Section>
+
+      {/* Key Stats */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+        {[{n:STATS.cases,l:"Cases Handled",icon:"📋"},{n:STATS.recovered,l:"Dollars Recovered",icon:"💰"},{n:"8",l:"Georgia Locations",icon:"📍"},{n:"24/7",l:"Support Available",icon:"📞"}].map(s=>(
+          <Card key={s.l} style={{textAlign:"center",padding:14}}>
+            <span style={{fontSize:20}}>{s.icon}</span>
+            <p style={{...font("Oswald",16,700,C.red),marginTop:4}}>{s.n}</p>
+            <p style={{...font("DM Sans",10,400,C.muted),marginTop:2}}>{s.l}</p>
+          </Card>
+        ))}
+      </div>
+
+      <Btn v="primary" full icon="📞" onClick={()=>window.open("tel:18004878911")}>Call 1-800-HELP-911</Btn>
+      <div style={{marginTop:10}}>
+        <Btn v="ghost" full icon="⚖️" onClick={()=>window.open("tel:18004878911")}>I Need an Attorney</Btn>
+      </div>
     </div>
   );
 }
 
 function CustNext() {
   const steps = [
-    {icon:"📞",t:"We connect you with the right team",d:"A Help 911 agent responds fast — no automated system."},
-    {icon:"📅",t:"We schedule your evaluation",d:"Get seen at a Georgia clinic. We handle the appointment."},
-    {icon:"💊",t:"We help you start treatment",d:"Chiropractic, PT, diagnostics — whatever you need."},
-    {icon:"⚖️",t:"We coordinate legal support",d:"Attorney referral if needed. We connect the dots."},
-    {icon:"✅",t:"We guide you through the process",d:"First call to final resolution. Never left guessing."},
+    {icon:"📞",t:"Call Help 911",d:"After your accident, one call sets everything in motion. We respond 24/7 with real agents, not automated systems."},
+    {icon:"⚖️",t:"We set you up with an attorney",d:"We connect you with a personal injury attorney and schedule your medical evaluation immediately."},
+    {icon:"🏥",t:"Get treated at zero cost",d:"Visit one of our 8 convenient Georgia locations. Zero out-of-pocket costs to you — we handle insurance."},
+    {icon:"💊",t:"Continue your treatment plan",d:"Follow your doctor's recommended care — chiropractic, physical therapy, MRI, diagnostics — until you're recovered."},
+    {icon:"💰",t:"Get the compensation you deserve",d:"We work with your lawyer so you get the money you deserve. Get better. Get paid."},
   ];
   return (
     <div style={{padding:"20px 18px 110px"}}>
