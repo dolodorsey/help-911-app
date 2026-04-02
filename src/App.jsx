@@ -6,16 +6,25 @@ import { useState, useEffect, useCallback, useRef } from "react";
 // ═══════════════════════════════════════════════════════════════
 
 const C = {
-  bg: "#07080C", bgCard: "#0F1017", bgCardHover: "#14151E",
-  bgInput: "#181924", bgSurface: "#1C1D28",
-  red: "#C82424", redGlow: "rgba(200,36,36,0.25)", redLight: "#E04040", redDark: "#8B1818",
-  blue: "#2563EB", blueGlow: "rgba(37,99,235,0.2)", blueLight: "#60A5FA",
-  chrome: "#C0C4D0", chromeDim: "#6B7085", white: "#F2F3F7",
+  bg: "#08090E", bgCard: "#0E1018", bgCardHover: "#151722",
+  bgInput: "#1A1C28", bgSurface: "#1E2030",
+  // HELP 911 = ORANGE primary (differentiated from SOS red/blue)
+  accent: "#E8700A", accentGlow: "rgba(232,112,10,0.25)", accentLight: "#F59030", accentDark: "#A84F00",
+  // Shield chrome
+  chrome: "#B8BCC8", chromeDim: "#6B7085", steel: "#8892A8",
+  white: "#F2F3F7",
   muted: "#8890A4", dim: "#4A5068",
-  green: "#10B981", greenDim: "#064E3B",
-  orange: "#F59E0B", orangeDim: "#78350F",
-  purple: "#8B5CF6",
+  // Service pillar colors
+  legal: "#C9A84C", legalGlow: "rgba(201,168,76,0.2)",      // The Esquire — gold
+  chiro: "#E04040", chiroGlow: "rgba(224,64,64,0.2)",        // Hurt 911 — red
+  mental: "#8B5CF6", mentalGlow: "rgba(139,92,246,0.2)",      // Mind Studio — purple
+  // Utilities
+  green: "#10B981", blue: "#2563EB", blueLight: "#60A5FA", blueGlow: "rgba(37,99,235,0.2)",
+  orange: "#E8700A", red: "#E04040", purple: "#8B5CF6",
   border: "rgba(255,255,255,0.06)", borderHover: "rgba(255,255,255,0.12)",
+  // Aliases for backwards compat
+  get red() { return this.chiro; }, get redGlow() { return this.chiroGlow; },
+  get redLight() { return "#F06060"; }, get redDark() { return "#8B1818"; },
 };
 
 const font = (f="DM Sans", s=14, w=400, c=C.white) => ({
@@ -80,19 +89,48 @@ const APPTS = [
 
 // ─── COMPONENTS ───
 function Logo({ size="md" }) {
-  const h = size==="sm"?28:size==="lg"?48:36;
+  const h = size==="sm"?28:size==="lg"?52:36;
   return (
     <div style={{ display:"flex", alignItems:"center", gap:10 }}>
       <img src="/help911-logo.png" alt="HELP 911" style={{ height:h, width:h, objectFit:"contain", borderRadius:6 }}
         onError={(e)=>{e.target.style.display='none'}} />
       <div style={{ lineHeight:1.1 }}>
         <span style={{ fontFamily:"Oswald,sans-serif", fontWeight:700, fontSize:h*0.55, color:C.white, letterSpacing:1 }}>
-          HELP <span style={{color:C.red}}>911</span>
+          HELP <span style={{color:C.accent}}>911</span>
         </span>
         {size!=="sm" && <span style={{ display:"block", fontFamily:"DM Sans,sans-serif", fontSize:h*0.22, color:C.chromeDim, letterSpacing:2.5, textTransform:"uppercase" }}>
-          Personal Injury Care
+          Recovery Concierge
         </span>}
       </div>
+    </div>
+  );
+}
+
+// ─── SHIELD BUTTON (premium badge-style action buttons) ───
+function ShieldBtn({ icon, label, sub, color, glow, onClick, size="lg" }) {
+  const [hover, setHover] = useState(false);
+  const sz = size==="lg"?{w:"100%",h:120,iconSz:36,labelSz:15,subSz:10}:{w:"100%",h:100,iconSz:28,labelSz:13,subSz:9};
+  return (
+    <div onClick={onClick} onMouseEnter={()=>setHover(true)} onMouseLeave={()=>setHover(false)}
+      style={{
+        width:sz.w, height:sz.h, borderRadius:16, cursor:"pointer",
+        background:`linear-gradient(145deg, ${color}18, ${C.bgCard})`,
+        border:`1.5px solid ${hover?`${color}50`:`${color}25`}`,
+        boxShadow:hover?`0 8px 32px ${glow}, inset 0 1px 0 rgba(255,255,255,0.05)`:`0 2px 12px ${glow}`,
+        display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:6,
+        transition:"all 0.25s ease", position:"relative", overflow:"hidden",
+      }}>
+      {/* Chrome edge highlight */}
+      <div style={{position:"absolute",top:0,left:"20%",right:"20%",height:1,background:`linear-gradient(90deg,transparent,${C.chrome}30,transparent)`}} />
+      <div style={{
+        width:sz.iconSz+16, height:sz.iconSz+16, borderRadius:12,
+        background:`linear-gradient(135deg, ${color}30, ${color}10)`,
+        border:`1px solid ${color}40`,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        fontSize:sz.iconSz, boxShadow:`0 4px 16px ${glow}`,
+      }}>{icon}</div>
+      <span style={{fontFamily:"Oswald,sans-serif",fontWeight:700,fontSize:sz.labelSz,color:C.white,letterSpacing:1,textTransform:"uppercase"}}>{label}</span>
+      {sub && <span style={{fontFamily:"DM Sans,sans-serif",fontSize:sz.subSz,color:C.muted,marginTop:-2}}>{sub}</span>}
     </div>
   );
 }
@@ -100,7 +138,7 @@ function Logo({ size="md" }) {
 function Btn({ children, v="primary", onClick, icon, full, small, disabled }) {
   const [h, setH] = useState(false);
   const styles = {
-    primary: { bg: h?C.redLight:`linear-gradient(135deg,${C.red},${C.redDark})`, c:"#fff", b:"none", sh:h?`0 6px 28px ${C.redGlow}`:"0 2px 12px rgba(200,36,36,0.15)" },
+    primary: { bg: h?C.accentLight:`linear-gradient(135deg,${C.accent},${C.accentDark})`, c:"#fff", b:"none", sh:h?`0 6px 28px ${C.accentGlow}`:"0 2px 12px rgba(232,112,10,0.15)" },
     secondary: { bg:h?C.bgCardHover:C.bgCard, c:C.white, b:`1px solid ${h?C.borderHover:C.border}`, sh:"none" },
     ghost: { bg:"transparent", c:h?C.white:C.chrome, b:`1px solid ${h?C.chromeDim:C.border}`, sh:"none" },
     success: { bg:h?"#059669":C.green, c:"#fff", b:"none", sh:h?"0 4px 16px rgba(16,185,129,0.3)":"none" },
@@ -216,65 +254,73 @@ function CustHelp({ go, switchMode }) {
 
   return (
     <div style={{padding:"20px 18px 110px"}}>
-      <Logo size="lg" />
-
-      <div style={{marginTop:28}}>
-        <h1 style={{...font("Oswald","clamp(26px,7vw,38px)",700,C.white),lineHeight:1.1}}>
-          Georgia's Accident<br/>Recovery Team.
+      {/* Hero Section */}
+      <div style={{textAlign:"center",paddingTop:8}}>
+        <img src="/help911-logo.png" alt="HELP 911" style={{width:120,height:120,objectFit:"contain",margin:"0 auto",display:"block",filter:"drop-shadow(0 8px 32px rgba(232,112,10,0.3))"}}
+          onError={(e)=>{e.target.style.display='none'}} />
+        <p style={{...font("DM Sans",11,600,C.accent),letterSpacing:3,textTransform:"uppercase",marginTop:12}}>— Recovery Concierge —</p>
+        <h1 style={{...font("Oswald","clamp(24px,6vw,34px)",700,C.white),marginTop:8,lineHeight:1.15}}>
+          Get Better. Get <span style={{color:C.green}}>Paid</span>.
         </h1>
-        <p style={{...font("Oswald",16,400,C.chrome),marginTop:6,lineHeight:1.2}}>Get Better. Get <span style={{color:C.green,fontWeight:700}}>Paid</span>.</p>
-        <p style={{...font("DM Sans",13,400,C.muted),marginTop:10,lineHeight:1.6}}>
-          Chiropractors, accident doctors, and attorney referrals. 8 locations across Georgia. Zero out-of-pocket costs. Free transportation. 24/7 support.
+        <p style={{...font("DM Sans",12,400,C.muted),marginTop:8,lineHeight:1.5,maxWidth:320,marginLeft:"auto",marginRight:"auto"}}>
+          Attorneys. Chiropractors. Mental Health. 8 Georgia locations. Zero out-of-pocket costs.
         </p>
       </div>
 
-      {/* Trust Row */}
-      <div style={{display:"flex",gap:8,marginTop:16,overflowX:"auto",paddingBottom:4}}>
-        {["⭐ 4.8 Rating","🏆 Best of GA 2025","📍 8 Locations","💰 $0 Out of Pocket"].map(t=>(
-          <span key={t} style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:20,padding:"5px 12px",whiteSpace:"nowrap",...font("DM Sans",10,500,C.chrome)}}>{t}</span>
+      {/* EMERGENCY CTA */}
+      <div style={{marginTop:20}}>
+        <ShieldBtn icon="📞" label="Call Help 911" sub="24/7 Live Agents" color={C.accent} glow={C.accentGlow} onClick={()=>window.open("tel:18004878911")} />
+      </div>
+
+      {/* 3 SERVICE PILLARS */}
+      <p style={{...font("DM Sans",10,600,C.steel),letterSpacing:2,textTransform:"uppercase",textAlign:"center",marginTop:24,marginBottom:12}}>Choose Your Service</p>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+        <ShieldBtn icon="⚖️" label="Attorney" sub="The Esquire" color={C.legal} glow={C.legalGlow} onClick={()=>go("attorney")} size="sm" />
+        <ShieldBtn icon="🦴" label="Treatment" sub="Hurt 911" color={C.chiro} glow={C.chiroGlow} onClick={()=>go("clinics")} size="sm" />
+        <ShieldBtn icon="🧠" label="Mental Health" sub="Mind Studio" color={C.mental} glow={C.mentalGlow} onClick={()=>go("services")} size="sm" />
+      </div>
+
+      {/* Quick Actions Row */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:14}}>
+        <Btn v="secondary" onClick={()=>go("clinics")} icon="📍">Find a Clinic</Btn>
+        <Btn v="ghost" onClick={()=>switchMode()} icon="📊">My Case Status</Btn>
+      </div>
+
+      {/* Trust Badges */}
+      <div style={{display:"flex",gap:6,marginTop:18,overflowX:"auto",paddingBottom:4,justifyContent:"center",flexWrap:"wrap"}}>
+        {["⭐ 4.8 / 816 Reviews","🏆 Best of GA 2025","📍 8 Locations","💰 $0 Cost"].map(t=>(
+          <span key={t} style={{background:`${C.accent}08`,border:`1px solid ${C.accent}15`,borderRadius:20,padding:"5px 12px",whiteSpace:"nowrap",...font("DM Sans",9,500,C.steel)}}>{t}</span>
         ))}
       </div>
 
-      <div style={{marginTop:24}}>
-        <Btn v="primary" full icon="📞" onClick={()=>window.open("tel:18004878911")}>Call Me Now</Btn>
-      </div>
-
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginTop:14}}>
-        <Btn v="secondary" onClick={()=>go("attorney")} icon="⚖️">I Need an Attorney</Btn>
-        <Btn v="secondary" onClick={()=>go("clinics")} icon="🏥">I Need Treatment</Btn>
-      </div>
-      <div style={{marginTop:10}}>
-        <Btn v="ghost" full onClick={()=>switchMode()} icon="📊">Check My Case Status</Btn>
-      </div>
-
-      {/* Intake Form */}
-      <Card style={{marginTop:24}}>
+      {/* Quick Intake Form */}
+      <Card style={{marginTop:20,borderColor:`${C.accent}15`}}>
         {submitted ? (
-          <div style={{textAlign:"center",padding:20}}>
-            <span style={{fontSize:48,display:"block",marginBottom:12}}>✅</span>
-            <h3 style={{...font("Oswald",20,600,C.white),marginBottom:8}}>We Got You.</h3>
-            <p style={{...font("DM Sans",13,400,C.muted),lineHeight:1.5}}>A Help 911 agent will call you back within minutes. Stay by your phone.</p>
-            <Btn v="ghost" full onClick={()=>setSubmitted(false)} style={{marginTop:16}}>Submit Another</Btn>
+          <div style={{textAlign:"center",padding:16}}>
+            <span style={{fontSize:44,display:"block",marginBottom:10}}>✅</span>
+            <h3 style={{...font("Oswald",20,600,C.white),marginBottom:6}}>We Got You.</h3>
+            <p style={{...font("DM Sans",13,400,C.muted),lineHeight:1.5}}>A Help 911 agent will call you back within minutes.</p>
+            <Btn v="ghost" full onClick={()=>setSubmitted(false)} style={{marginTop:14}}>Submit Another</Btn>
           </div>
         ) : (<>
-          <h3 style={{...font("Oswald",17,600,C.white),marginBottom:16}}>Get Help Now</h3>
+          <h3 style={{...font("Oswald",16,600,C.white),marginBottom:4}}>Get Help Now</h3>
+          <p style={{...font("DM Sans",11,400,C.muted),marginBottom:14}}>Fill out and an agent calls you back fast.</p>
           <Inp label="Your Name" placeholder="Full name" icon="👤" value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))} />
           <Inp label="Phone Number" placeholder="(___) ___-____" type="tel" icon="📱" value={form.phone} onChange={e=>setForm(p=>({...p,phone:e.target.value}))} />
-          <Inp label="Accident Date" placeholder="MM/DD/YYYY" type="date" icon="📅" value={form.date} onChange={e=>setForm(p=>({...p,date:e.target.value}))} />
-          <Inp label="City" placeholder="Atlanta, GA" icon="📍" value={form.city} onChange={e=>setForm(p=>({...p,city:e.target.value}))} />
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
-            {["Need Attorney","Need Treatment","Need Transportation","Not Sure"].map(opt=>(
-              <label key={opt} onClick={()=>toggleCheck(opt)} style={{
-                display:"flex",alignItems:"center",gap:7,background:checks[opt]?`${C.red}15`:C.bgInput,
-                border:`1px solid ${checks[opt]?`${C.red}40`:C.border}`,
+          <Inp label="Accident Date" type="date" icon="📅" value={form.date} onChange={e=>setForm(p=>({...p,date:e.target.value}))} />
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
+            {[{l:"Need Attorney",c:C.legal},{l:"Need Treatment",c:C.chiro},{l:"Need Mental Health",c:C.mental},{l:"Not Sure",c:C.accent}].map(opt=>(
+              <label key={opt.l} onClick={()=>toggleCheck(opt.l)} style={{
+                display:"flex",alignItems:"center",gap:7,background:checks[opt.l]?`${opt.c}12`:C.bgInput,
+                border:`1px solid ${checks[opt.l]?`${opt.c}40`:C.border}`,
                 borderRadius:8,padding:"9px 10px",cursor:"pointer",transition:"all 0.2s",
-                ...font("DM Sans",11,500,checks[opt]?C.redLight:C.chrome) }}>
-                <div style={{width:16,height:16,borderRadius:4,border:`2px solid ${checks[opt]?C.red:C.chromeDim}`,
-                  background:checks[opt]?C.red:"transparent",display:"flex",alignItems:"center",
-                  justifyContent:"center",fontSize:9,color:"#fff",transition:"all 0.2s",flexShrink:0}}>
-                  {checks[opt]?"✓":""}
+                ...font("DM Sans",11,500,checks[opt.l]?C.white:C.chrome) }}>
+                <div style={{width:14,height:14,borderRadius:3,border:`2px solid ${checks[opt.l]?opt.c:C.chromeDim}`,
+                  background:checks[opt.l]?opt.c:"transparent",display:"flex",alignItems:"center",
+                  justifyContent:"center",fontSize:8,color:"#fff",transition:"all 0.2s",flexShrink:0}}>
+                  {checks[opt.l]?"✓":""}
                 </div>
-                {opt}
+                {opt.l}
               </label>
             ))}
           </div>
@@ -282,13 +328,17 @@ function CustHelp({ go, switchMode }) {
         </>)}
       </Card>
 
-      <div style={{display:"flex",justifyContent:"center",gap:20,marginTop:20,padding:"14px 0"}}>
-        {["🟢 Open 24/7","⚡ Fast Response","👥 Real Agents"].map(t=>(
-          <span key={t} style={{...font("DM Sans",10,400,C.dim)}}>{t}</span>
-        ))}
+      {/* Someone I Know Got Hurt */}
+      <div style={{marginTop:14}}>
+        <Btn v="ghost" full icon="❤️‍🩹">Someone I Know Got Hurt</Btn>
       </div>
 
-      <Btn v="ghost" full icon="❤️‍🩹" onClick={()=>go("refer")}>Someone I Know Got Hurt</Btn>
+      {/* Bottom Trust */}
+      <div style={{display:"flex",justifyContent:"center",gap:20,marginTop:16}}>
+        {["🟢 Open 24/7","⚡ Fast Response","👥 Real Agents"].map(t=>(
+          <span key={t} style={{...font("DM Sans",9,400,C.dim)}}>{t}</span>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1312,7 +1362,7 @@ export default function Help911App() {
   };
 
   const tabs = mode==="rep"?REP_TABS:mode==="client"?CLIENT_TABS:CUST_TABS;
-  const accent = mode==="rep"?C.blue:C.red;
+  const accent = mode==="rep"?C.blue:C.accent;
 
   const screens = {
     help:<CustHelp go={go} switchMode={switchMode} />,
