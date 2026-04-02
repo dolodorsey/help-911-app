@@ -8,23 +8,23 @@ import { useState, useEffect, useCallback, useRef } from "react";
 const C = {
   bg: "#08090E", bgCard: "#0E1018", bgCardHover: "#151722",
   bgInput: "#1A1C28", bgSurface: "#1E2030",
-  // HELP 911 = ORANGE primary (differentiated from SOS red/blue)
-  accent: "#E8700A", accentGlow: "rgba(232,112,10,0.25)", accentLight: "#F59030", accentDark: "#A84F00",
-  // Shield chrome
-  chrome: "#B8BCC8", chromeDim: "#6B7085", steel: "#8892A8",
-  white: "#F2F3F7",
+  // HELP 911 = RED/WHITE/BLUE (matching the logo)
+  accent: "#D42B2B", accentGlow: "rgba(212,43,43,0.25)", accentLight: "#EF4444", accentDark: "#991B1B",
+  blue: "#1E40AF", blueGlow: "rgba(30,64,175,0.25)", blueLight: "#3B82F6", blueDark: "#1E3A5F",
+  // Chrome
+  chrome: "#C8CDD8", chromeDim: "#6B7085", steel: "#8892A8",
+  white: "#F5F6FA",
   muted: "#8890A4", dim: "#4A5068",
   // Service pillar colors
   legal: "#C9A84C", legalGlow: "rgba(201,168,76,0.2)",      // The Esquire — gold
-  chiro: "#E04040", chiroGlow: "rgba(224,64,64,0.2)",        // Hurt 911 — red
-  mental: "#8B5CF6", mentalGlow: "rgba(139,92,246,0.2)",      // Mind Studio — purple
+  chiro: "#D42B2B", chiroGlow: "rgba(212,43,43,0.2)",        // Hurt 911 — red
+  mental: "#7C3AED", mentalGlow: "rgba(124,58,237,0.2)",      // Mind Studio — purple
   // Utilities
-  green: "#10B981", blue: "#2563EB", blueLight: "#60A5FA", blueGlow: "rgba(37,99,235,0.2)",
-  orange: "#E8700A", red: "#E04040", purple: "#8B5CF6",
+  green: "#10B981", orange: "#F59E0B", purple: "#7C3AED", red: "#D42B2B",
   border: "rgba(255,255,255,0.06)", borderHover: "rgba(255,255,255,0.12)",
-  // Aliases for backwards compat
-  get red() { return this.chiro; }, get redGlow() { return this.chiroGlow; },
-  get redLight() { return "#F06060"; }, get redDark() { return "#8B1818"; },
+  // Aliases
+  get redGlow() { return this.accentGlow; },
+  get redLight() { return this.accentLight; }, get redDark() { return this.accentDark; },
 };
 
 const font = (f="DM Sans", s=14, w=400, c=C.white) => ({
@@ -138,7 +138,7 @@ function ShieldBtn({ icon, label, sub, color, glow, onClick, size="lg" }) {
 function Btn({ children, v="primary", onClick, icon, full, small, disabled }) {
   const [h, setH] = useState(false);
   const styles = {
-    primary: { bg: h?C.accentLight:`linear-gradient(135deg,${C.accent},${C.accentDark})`, c:"#fff", b:"none", sh:h?`0 6px 28px ${C.accentGlow}`:"0 2px 12px rgba(232,112,10,0.15)" },
+    primary: { bg: h?C.accentLight:`linear-gradient(135deg,${C.accent},${C.accentDark})`, c:"#fff", b:"none", sh:h?`0 6px 28px ${C.accentGlow}`:"0 2px 12px rgba(212,43,43,0.2)" },
     secondary: { bg:h?C.bgCardHover:C.bgCard, c:C.white, b:`1px solid ${h?C.borderHover:C.border}`, sh:"none" },
     ghost: { bg:"transparent", c:h?C.white:C.chrome, b:`1px solid ${h?C.chromeDim:C.border}`, sh:"none" },
     success: { bg:h?"#059669":C.green, c:"#fff", b:"none", sh:h?"0 4px 16px rgba(16,185,129,0.3)":"none" },
@@ -256,7 +256,7 @@ function CustHelp({ go, switchMode }) {
     <div style={{padding:"20px 18px 110px"}}>
       {/* Hero Section */}
       <div style={{textAlign:"center",paddingTop:8}}>
-        <img src="/help911-logo.png" alt="HELP 911" style={{width:120,height:120,objectFit:"contain",margin:"0 auto",display:"block",filter:"drop-shadow(0 8px 32px rgba(232,112,10,0.3))"}}
+        <img src="/help911-logo.png" alt="HELP 911" style={{width:120,height:120,objectFit:"contain",margin:"0 auto",display:"block",filter:"drop-shadow(0 8px 32px rgba(212,43,43,0.35))"}}
           onError={(e)=>{e.target.style.display='none'}} />
         <p style={{...font("DM Sans",11,600,C.accent),letterSpacing:3,textTransform:"uppercase",marginTop:12}}>— Recovery Concierge —</p>
         <h1 style={{...font("Oswald","clamp(24px,6vw,34px)",700,C.white),marginTop:8,lineHeight:1.15}}>
@@ -276,7 +276,7 @@ function CustHelp({ go, switchMode }) {
       <p style={{...font("DM Sans",10,600,C.steel),letterSpacing:2,textTransform:"uppercase",textAlign:"center",marginTop:24,marginBottom:12}}>Choose Your Service</p>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
         <ShieldBtn icon="⚖️" label="Attorney" sub="The Esquire" color={C.legal} glow={C.legalGlow} onClick={()=>go("attorney")} size="sm" />
-        <ShieldBtn icon="🦴" label="Treatment" sub="Hurt 911" color={C.chiro} glow={C.chiroGlow} onClick={()=>go("clinics")} size="sm" />
+        <ShieldBtn icon="🦴" label="Treatment" sub="Hurt 911" color={C.accent} glow={C.accentGlow} onClick={()=>go("clinics")} size="sm" />
         <ShieldBtn icon="🧠" label="Mental Health" sub="Mind Studio" color={C.mental} glow={C.mentalGlow} onClick={()=>go("services")} size="sm" />
       </div>
 
@@ -289,7 +289,7 @@ function CustHelp({ go, switchMode }) {
       {/* Trust Badges */}
       <div style={{display:"flex",gap:6,marginTop:18,overflowX:"auto",paddingBottom:4,justifyContent:"center",flexWrap:"wrap"}}>
         {["⭐ 4.8 / 816 Reviews","🏆 Best of GA 2025","📍 8 Locations","💰 $0 Cost"].map(t=>(
-          <span key={t} style={{background:`${C.accent}08`,border:`1px solid ${C.accent}15`,borderRadius:20,padding:"5px 12px",whiteSpace:"nowrap",...font("DM Sans",9,500,C.steel)}}>{t}</span>
+          <span key={t} style={{background:`${C.blue}10`,border:`1px solid ${C.blue}20`,borderRadius:20,padding:"5px 12px",whiteSpace:"nowrap",...font("DM Sans",9,500,C.chrome)}}>{t}</span>
         ))}
       </div>
 
