@@ -1539,6 +1539,8 @@ function Help911App() {
   const [clientSession, setClientSession] = useState(null);
   const [resetSent, setResetSent] = useState(false);
   const [legalView, setLegalView] = useState(null);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  useEffect(()=>{const on=()=>setIsOffline(false);const off=()=>setIsOffline(true);window.addEventListener('online',on);window.addEventListener('offline',off);return()=>{window.removeEventListener('online',on);window.removeEventListener('offline',off)}},[]);
 
   // Auth constants (using MCP Gateway Supabase — help911 tables are here)
   const H_SB='https://dzlmtvodpyhetvektfuo.supabase.co';
@@ -1653,6 +1655,7 @@ function Help911App() {
       <div style={{maxWidth:480,margin:"0 auto",background:C.bg,minHeight:"100vh",minHeight:"100dvh",position:"relative",fontFamily:"DM Sans,sans-serif",overflowX:"hidden"}}>
         {/* Status bar accent */}
         <div className="safe-top" style={{position:"sticky",top:0,zIndex:50,height:3,background:`linear-gradient(90deg,${accent},transparent)`}}/>
+        {isOffline&&<div style={{position:"fixed",top:0,left:0,right:0,zIndex:200,background:C.accent,color:"#fff",textAlign:"center",padding:"6px",fontSize:11,fontWeight:700,fontFamily:"DM Sans,sans-serif"}}>No internet connection</div>}
 
         {/* Mode Switcher — Rep and Client require authentication */}
         <div style={{position:"fixed",top:8,right:8,zIndex:101,display:"flex",gap:4}}>
