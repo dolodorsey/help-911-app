@@ -1,0 +1,12 @@
+{
+  "name": "Help 911 Recovery Concierge",
+  "short_name": "Help 911",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07080C",
+  "theme_color": "#C82424",
+  "description": "Georgia's accident recovery concierge — treatment, transportation, legal support.",
+  "icons": [
+    { "src": "/help911-logo.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
