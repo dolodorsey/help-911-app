@@ -1,0 +1,101 @@
+{
+  "name": "🚑 HELP 911 | Lead Intake → GHL Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "help911-intake",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Webhook - Lead Intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT help911_create_lead(\n  '{{ $json.body.firstName }}',\n  '{{ $json.body.lastName || \"\" }}',\n  '{{ $json.body.phone }}',\n  '{{ $json.body.city || \"Atlanta\" }}',\n  {{ $json.body.accidentDate ? \"'\" + $json.body.accidentDate + \"'\" : \"NULL\" }},\n  {{ $json.body.needsAttorney || false }},\n  {{ $json.body.needsTreatment || false }},\n  {{ $json.body.needsTransportation || false }},\n  {{ $json.body.notSure || false }},\n  '{{ $json.body.source || \"app\" }}'\n) as result;"
+      },
+      "id": "supabase_insert",
+      "name": "Supabase - Create Lead",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [440, 300],
+      "credentials": {
+        "postgres": { "id": "supabase_postgres", "name": "KHG Supabase Postgres" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/contacts/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer pit-9a59cc0e-98f4-4968-a45a-a6c3663ffeaf" },
+            { "name": "Version", "value": "2021-07-28" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"locationId\": \"My8EzLOwxDNkXVKLbFBh\",\n  \"firstName\": \"{{ $('Webhook - Lead Intake').item.json.body.firstName }}\",\n  \"lastName\": \"{{ $('Webhook - Lead Intake').item.json.body.lastName || '' }}\",\n  \"phone\": \"{{ $('Webhook - Lead Intake').item.json.body.phone }}\",\n  \"tags\": [\"help911\", \"app_lead\", \"new\"],\n  \"source\": \"Help 911 App\",\n  \"customFields\": [\n    {\"id\": \"17vQEJWpVCf9gJYIG0A1\", \"field_value\": \"{{ $('Webhook - Lead Intake').item.json.body.accidentDate || '' }}\"},\n    {\"id\": \"SEFg5RMLfSzNJlhxWSmh\", \"field_value\": \"{{ $('Webhook - Lead Intake').item.json.body.needsAttorney ? 'Yes' : 'No' }}\"},\n    {\"id\": \"Vd75D4j5nWC6h4GYYlin\", \"field_value\": \"{{ $('Webhook - Lead Intake').item.json.body.needsTreatment ? 'Yes' : 'No' }}\"},\n    {\"id\": \"m3DU0BBqwnfxBw4d9q3u\", \"field_value\": \"{{ $('Webhook - Lead Intake').item.json.body.needsTransportation ? 'Yes' : 'No' }}\"},\n    {\"id\": \"Ru2Csh7AjUBNModKS4PH\", \"field_value\": \"app\"},\n    {\"id\": \"W8frBt8kbZ5aqifgHNsq\", \"field_value\": \"New\"}\n  ]\n}",
+        "options": {}
+      },
+      "id": "ghl_create",
+      "name": "GHL - Create Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO help911_ghl_sync (direction, entity_type, entity_id, ghl_id, payload, status)\nVALUES ('to_ghl', 'contact', \n  '{{ $('Supabase - Create Lead').item.json[0].result.id }}',\n  '{{ $json.contact.id }}',\n  '{{ JSON.stringify($json) }}'::jsonb,\n  'success');"
+      },
+      "id": "log_sync",
+      "name": "Log GHL Sync",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [880, 300],
+      "credentials": {
+        "postgres": { "id": "supabase_postgres", "name": "KHG Supabase Postgres" }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE help911_leads SET ghl_contact_id = '{{ $('GHL - Create Contact').item.json.contact.id }}' WHERE id = {{ $('Supabase - Create Lead').item.json[0].result.id }};"
+      },
+      "id": "update_lead",
+      "name": "Update Lead with GHL ID",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [880, 480],
+      "credentials": {
+        "postgres": { "id": "supabase_postgres", "name": "KHG Supabase Postgres" }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, lead_id: $('Supabase - Create Lead').item.json[0].result.lead_id, ghl_contact_id: $('GHL - Create Contact').item.json.contact.id } }}"
+      },
+      "id": "respond",
+      "name": "Respond - Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1100, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Lead Intake": { "main": [[{ "node": "Supabase - Create Lead", "type": "main", "index": 0 }]] },
+    "Supabase - Create Lead": { "main": [[{ "node": "GHL - Create Contact", "type": "main", "index": 0 }]] },
+    "GHL - Create Contact": { "main": [[{ "node": "Log GHL Sync", "type": "main", "index": 0 }, { "node": "Update Lead with GHL ID", "type": "main", "index": 0 }]] },
+    "Log GHL Sync": { "main": [[{ "node": "Respond - Success", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "🚑 Help 911" }]
+}
