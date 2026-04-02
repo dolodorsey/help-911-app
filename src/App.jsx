@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { submitLead, submitAttorneyIntake } from "./api.js";
 
 // ═══════════════════════════════════════════════════════════════
 // HELP 911 — RECOVERY CONCIERGE APP
@@ -250,14 +251,37 @@ function CustHelp({ go, switchMode }) {
   const [form, setForm] = useState({});
   const [checks, setChecks] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
   const toggleCheck = k => setChecks(p=>({...p,[k]:!p[k]}));
+
+  const handleSubmit = async () => {
+    if (!form.name || !form.phone) return;
+    setLoading(true);
+    try {
+      const names = (form.name || "").split(" ");
+      await submitLead({
+        firstName: names[0] || "",
+        lastName: names.slice(1).join(" ") || "",
+        phone: form.phone,
+        city: form.city || "Atlanta",
+        accidentDate: form.date || null,
+        needsAttorney: !!checks["Need Attorney"],
+        needsTreatment: !!checks["Need Treatment"],
+        needsTransportation: !!checks["Need Transportation"] || false,
+        notSure: !!checks["Not Sure"],
+        source: "app",
+      });
+    } catch(e) { console.error(e); }
+    setLoading(false);
+    setSubmitted(true);
+  };
 
   return (
     <div style={{padding:"0 0 110px",position:"relative",minHeight:"100vh"}}>
       {/* Full background image */}
       <div style={{
         position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:0,
-        backgroundImage:"url(/help911-bg.jpg)",
+        backgroundImage:"url(/help911-bg.png)",
         backgroundSize:"cover",backgroundPosition:"center top",backgroundRepeat:"no-repeat",
       }}>
         {/* Dark overlay for readability */}
@@ -333,7 +357,7 @@ function CustHelp({ go, switchMode }) {
               </label>
             ))}
           </div>
-          <Btn v="primary" full onClick={()=>setSubmitted(true)}>Get Help Now</Btn>
+          <Btn v="primary" full onClick={handleSubmit} disabled={loading || !form.name || !form.phone}>{loading ? "Submitting..." : "Get Help Now"}</Btn>
         </>)}
       </Card>
 
@@ -1014,8 +1038,19 @@ function CustAttorney({ go }) {
   const [d, setD] = useState({});
   const [docs, setDocs] = useState([]);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
   const u = (k,v) => setD(p=>({...p,[k]:v}));
   const totalSteps = 6;
+
+  const handleAttorneySubmit = async () => {
+    if (!d.callbackDate || !d.callbackTime) return;
+    setLoading(true);
+    try {
+      await submitAttorneyIntake(d);
+    } catch(e) { console.error(e); }
+    setLoading(false);
+    setSubmitted(true);
+  };
 
   const StepBar = () => (
     <div style={{marginBottom:20}}>
@@ -1320,8 +1355,8 @@ function CustAttorney({ go }) {
             </div>
           </div>
 
-          <Btn v="primary" full onClick={()=>{if(d.callbackDate && d.callbackTime) setSubmitted(true)}} disabled={!d.callbackDate || !d.callbackTime}>
-            Schedule My Agent Call
+          <Btn v="primary" full onClick={handleAttorneySubmit} disabled={!d.callbackDate || !d.callbackTime || loading}>
+            {loading ? "Submitting..." : "Schedule My Agent Call"}
           </Btn>
           <p style={{...font("DM Sans",10,400,C.dim),textAlign:"center",marginTop:10}}>By submitting, you agree to receive a call from a Help 911 agent at your scheduled time.</p>
         </Card>
