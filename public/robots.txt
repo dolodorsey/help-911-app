@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://help-911-app.vercel.app/sitemap.xml
