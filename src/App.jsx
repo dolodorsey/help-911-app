@@ -222,7 +222,7 @@ function CustHelp({ go, switchMode }) {
         <h1 style={{...font("Oswald","clamp(26px,7vw,38px)",700,C.white),lineHeight:1.1}}>
           Georgia's Accident<br/>Recovery Team.
         </h1>
-        <p style={{...font("Oswald",16,400,C.chrome),marginTop:6,lineHeight:1.2}}>Get Better. Get Paid.</p>
+        <p style={{...font("Oswald",16,400,C.chrome),marginTop:6,lineHeight:1.2}}>Get Better. Get <span style={{color:C.green,fontWeight:700}}>Paid</span>.</p>
         <p style={{...font("DM Sans",13,400,C.muted),marginTop:10,lineHeight:1.6}}>
           Chiropractors, accident doctors, and attorney referrals. 8 locations across Georgia. Zero out-of-pocket costs. Free transportation. 24/7 support.
         </p>
@@ -240,8 +240,8 @@ function CustHelp({ go, switchMode }) {
       </div>
 
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginTop:14}}>
-        <Btn v="secondary" onClick={()=>go("clinics")} icon="❤️">I Need Treatment</Btn>
-        <Btn v="secondary" onClick={()=>go("transport")} icon="🚗">I Need a Ride</Btn>
+        <Btn v="secondary" onClick={()=>window.open("tel:18004878911")} icon="⚖️">I Need an Attorney</Btn>
+        <Btn v="secondary" onClick={()=>go("clinics")} icon="🏥">I Need Treatment</Btn>
       </div>
       <div style={{marginTop:10}}>
         <Btn v="ghost" full onClick={()=>switchMode()} icon="📊">Check My Case Status</Btn>
