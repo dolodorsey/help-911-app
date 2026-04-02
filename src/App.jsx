@@ -253,11 +253,20 @@ function CustHelp({ go, switchMode }) {
   const toggleCheck = k => setChecks(p=>({...p,[k]:!p[k]}));
 
   return (
-    <div style={{padding:"20px 18px 110px"}}>
+    <div style={{padding:"0 0 110px",position:"relative",minHeight:"100vh"}}>
+      {/* Full background image */}
+      <div style={{
+        position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:0,
+        backgroundImage:"url(/help911-bg.png)",
+        backgroundSize:"cover",backgroundPosition:"center top",backgroundRepeat:"no-repeat",
+      }}>
+        {/* Dark overlay for readability */}
+        <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg, rgba(8,9,14,0.3) 0%, rgba(8,9,14,0.6) 40%, rgba(8,9,14,0.92) 70%, rgba(8,9,14,1) 100%)"}} />
+      </div>
+
+      <div style={{position:"relative",zIndex:1,padding:"20px 18px 0"}}>
       {/* Hero Section */}
-      <div style={{textAlign:"center",paddingTop:8}}>
-        <img src="/help911-logo.png" alt="HELP 911" style={{width:120,height:120,objectFit:"contain",margin:"0 auto",display:"block",filter:"drop-shadow(0 8px 32px rgba(212,43,43,0.35))"}}
-          onError={(e)=>{e.target.style.display='none'}} />
+      <div style={{textAlign:"center",paddingTop:180}}>
         <p style={{...font("DM Sans",11,600,C.accent),letterSpacing:3,textTransform:"uppercase",marginTop:12}}>— Recovery Concierge —</p>
         <h1 style={{...font("Oswald","clamp(24px,6vw,34px)",700,C.white),marginTop:8,lineHeight:1.15}}>
           Get Better. Get <span style={{color:C.green}}>Paid</span>.
@@ -339,6 +348,7 @@ function CustHelp({ go, switchMode }) {
           <span key={t} style={{...font("DM Sans",9,400,C.dim)}}>{t}</span>
         ))}
       </div>
+      </div>{/* close relative z-1 wrapper */}
     </div>
   );
 }
