@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { submitLead, submitAttorneyIntake, fetchLeads, fetchAppointments, fetchLeadStats } from "./api.js";
 
+// Haptic feedback for native iOS
+const tap=async(s='Medium')=>{try{const{Haptics,ImpactStyle}=await import('@capacitor/haptics');await Haptics.impact({style:ImpactStyle[s]||ImpactStyle.Medium});}catch{}};
+
 /* ═══ ERROR BOUNDARY ═══ */
 class H911ErrorBoundary extends React.Component{
   constructor(p){super(p);this.state={hasError:false};}
@@ -274,6 +277,7 @@ function CustHelp({ go, switchMode }) {
   const toggleCheck = k => setChecks(p=>({...p,[k]:!p[k]}));
 
   const handleSubmit = async () => {
+    tap('Heavy');
     if (!form.name || !form.phone) return;
     setLoading(true);
     try {
@@ -1179,6 +1183,7 @@ function CustAttorney({ go }) {
 
   const handleAttorneySubmit = async () => {
     if (!d.callbackDate || !d.callbackTime) return;
+    tap('Heavy');
     setLoading(true);
     try {
       await submitAttorneyIntake(d);
