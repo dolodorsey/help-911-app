@@ -30,9 +30,9 @@ const C = {
   accent: "#D42B2B", accentGlow: "rgba(212,43,43,0.25)", accentLight: "#EF4444", accentDark: "#991B1B",
   blue: "#1E40AF", blueGlow: "rgba(30,64,175,0.25)", blueLight: "#3B82F6", blueDark: "#1E3A5F",
   // Chrome
-  chrome: "#C8CDD8", chromeDim: "#6B7085", steel: "#8892A8",
+  chrome: "#C8CDD8", chromeDim: "#9BA0B8", steel: "#A8B0C4",
   white: "#F5F6FA",
-  muted: "#8890A4", dim: "#4A5068",
+  muted: "#B0B8CC", dim: "#7A82A0",
   // Service pillar colors
   legal: "#C9A84C", legalGlow: "rgba(201,168,76,0.2)",      // The Esquire — gold
   chiro: "#D42B2B", chiroGlow: "rgba(212,43,43,0.2)",        // Hurt 911 — red
@@ -224,7 +224,7 @@ function Tab({ active, icon, label, onClick, accent=C.red }) {
   return (
     <button onClick={onClick} style={{ background:"none", border:"none", display:"flex",
       flexDirection:"column", alignItems:"center", gap:3, cursor:"pointer",
-      opacity:active?1:0.45, transition:"opacity 0.2s", WebkitTapHighlightColor:"transparent",
+      opacity:active?1:0.6, transition:"opacity 0.2s", WebkitTapHighlightColor:"transparent",
       padding:"4px 2px", minWidth:52 }}>
       <span style={{fontSize:18}}>{icon}</span>
       <span style={{...font("DM Sans",9,active?700:400,active?accent:C.muted), letterSpacing:0.4}}>{label}</span>
@@ -335,7 +335,7 @@ function CustHelp({ go, switchMode }) {
             <div style={{position:"absolute",top:-1,left:"15%",right:"15%",height:2,background:"linear-gradient(90deg,transparent,rgba(200,210,230,0.5),transparent)",borderRadius:2}} />
             {/* Stars row */}
             <div style={{display:"flex",justifyContent:"center",gap:6,marginBottom:8}}>
-              {[...Array(5)].map((_,i)=><span key={i} style={{color:"rgba(200,210,230,0.6)",fontSize:10}}>★</span>)}
+              {[...Array(5)].map((_,i)=><span key={i} style={{color:"rgba(220,225,240,0.8)",fontSize:10}}>★</span>)}
             </div>
             {/* HELP 911 text */}
             <div style={{fontFamily:"Oswald,sans-serif",fontWeight:900,fontSize:52,lineHeight:0.95,letterSpacing:2,marginBottom:6}}>
@@ -355,7 +355,7 @@ function CustHelp({ go, switchMode }) {
         {/* ── TAGLINE ── */}
         <div style={{display:"flex",alignItems:"center",gap:10,marginTop:12,marginBottom:28}}>
           <div style={{height:1,width:30,background:"linear-gradient(90deg,transparent,rgba(200,210,230,0.3))"}} />
-          <span style={{fontFamily:"DM Sans,sans-serif",fontSize:10,fontWeight:600,letterSpacing:3,color:"rgba(200,210,230,0.5)",textTransform:"uppercase"}}>Emergency Service Recovery Assistance</span>
+          <span style={{fontFamily:"DM Sans,sans-serif",fontSize:10,fontWeight:600,letterSpacing:3,color:"rgba(220,225,240,0.75)",textTransform:"uppercase"}}>Emergency Service Recovery Assistance</span>
           <div style={{height:1,width:30,background:"linear-gradient(90deg,rgba(200,210,230,0.3),transparent)"}} />
         </div>
 
