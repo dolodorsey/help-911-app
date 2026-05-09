@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    { "source": "/now", "destination": "/" },
+    { "source": "/treatment", "destination": "/" },
+    { "source": "/attorney", "destination": "/" },
+    { "source": "/dispatch", "destination": "/" },
+    { "source": "/restart", "destination": "/" },
+    { "source": "/insurance", "destination": "/" },
+    { "source": "/atfault", "destination": "/" },
+    { "source": "/family", "destination": "/" },
+    { "source": "/partners", "destination": "/" },
+    { "source": "/press", "destination": "/" }
+  ]
+}
