@@ -181,17 +181,77 @@ function Btn({ children, v="primary", onClick, icon, full, small, disabled }) {
   );
 }
 
+// Pick the right mobile keyboard + autocomplete per input type
+function _kbHints(type, label) {
+  const l = (label||"").toLowerCase();
+  if (type === "tel" || l.includes("phone")) return { inputMode: "tel", autoComplete: "tel", autoCorrect: "off", autoCapitalize: "off", spellCheck: false };
+  if (type === "email" || l.includes("email")) return { inputMode: "email", autoComplete: "email", autoCorrect: "off", autoCapitalize: "off", spellCheck: false };
+  if (type === "date") return { autoComplete: "off" };
+  if (type === "number") return { inputMode: "numeric", autoComplete: "off" };
+  if (l.includes("first name")) return { inputMode: "text", autoComplete: "given-name", autoCapitalize: "words", autoCorrect: "off" };
+  if (l.includes("last name"))  return { inputMode: "text", autoComplete: "family-name", autoCapitalize: "words", autoCorrect: "off" };
+  if (l.includes("city"))       return { inputMode: "text", autoComplete: "address-level2", autoCapitalize: "words", autoCorrect: "off" };
+  if (l.includes("zip") || l.includes("postal")) return { inputMode: "numeric", autoComplete: "postal-code" };
+  return { inputMode: "text", autoCorrect: "on", autoCapitalize: "sentences" };
+}
+
 function Inp({ label, placeholder, type="text", value, onChange, icon }) {
   const [f, setF] = useState(false);
+  const hints = _kbHints(type, label);
   return (
     <div style={{ marginBottom:14 }}>
       {label&&<label style={{...font("DM Sans",11,500,C.muted), display:"block", marginBottom:5, letterSpacing:0.5}}>{label}</label>}
       <div style={{ display:"flex", alignItems:"center", background:C.bgInput, border:`1px solid ${f?C.red+"60":C.border}`, borderRadius:10, padding:"11px 14px", transition:"border 0.2s" }}>
         {icon&&<span style={{marginRight:8,fontSize:14,opacity:0.5}}>{icon}</span>}
-        <input type={type} placeholder={placeholder} value={value||""} onChange={onChange}
-          onFocus={()=>setF(true)} onBlur={()=>setF(false)}
-          style={{ background:"none", border:"none", outline:"none", color:C.white,
-            fontFamily:"DM Sans", fontSize:14, width:"100%", WebkitAppearance:"none" }} />
+        <input
+          type={type}
+          placeholder={placeholder}
+          value={value||""}
+          onChange={onChange}
+          onFocus={()=>setF(true)}
+          onBlur={()=>setF(false)}
+          {...hints}
+          style={{
+            background:"none", border:"none", outline:"none", color:C.white,
+            fontFamily:"DM Sans",
+            // 🔥 16px MINIMUM prevents iOS Safari/Capacitor WebView auto-zoom
+            // (which was stealing focus mid-keystroke = "can't type" bug)
+            fontSize:16,
+            width:"100%", WebkitAppearance:"none",
+            // Allow native iOS text selection + paste
+            WebkitUserSelect:"text", userSelect:"text",
+            WebkitTouchCallout:"default"
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Same fix for multiline textarea (used for accident/injury descriptions)
+function TxtArea({ label, placeholder, value, onChange, rows=4 }) {
+  const [f, setF] = useState(false);
+  return (
+    <div style={{ marginBottom:14 }}>
+      {label&&<label style={{...font("DM Sans",11,500,C.muted), display:"block", marginBottom:5, letterSpacing:0.5}}>{label}</label>}
+      <div style={{ background:C.bgInput, border:`1px solid ${f?C.red+"60":C.border}`, borderRadius:10, padding:"11px 14px", transition:"border 0.2s" }}>
+        <textarea
+          placeholder={placeholder}
+          value={value||""}
+          onChange={onChange}
+          rows={rows}
+          onFocus={()=>setF(true)}
+          onBlur={()=>setF(false)}
+          autoCorrect="on"
+          autoCapitalize="sentences"
+          spellCheck={true}
+          style={{
+            background:"none", border:"none", outline:"none", color:C.white,
+            fontFamily:"DM Sans", fontSize:16, width:"100%", WebkitAppearance:"none",
+            resize:"vertical", minHeight: rows*22,
+            WebkitUserSelect:"text", userSelect:"text"
+          }}
+        />
       </div>
     </div>
   );

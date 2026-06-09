@@ -21,6 +21,11 @@
       "backgroundColor": "#07080C",
       "showSpinner": false,
       "splashImmersive": true
+    },
+    "Keyboard": {
+      "resize": "native",
+      "style": "DARK",
+      "resizeOnFullScreen": true
     }
   }
 }

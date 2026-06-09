@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
   <meta name="theme-color" content="#07080C" />
   <title>Help 911 — Recovery Concierge</title>
   <meta name="description" content="Help 911 is a recovery concierge for accident victims. Free attorney consultation, zero-cost treatment, and transportation coordination. Call 1-800-HELP-911." />
@@ -21,6 +22,16 @@
   <link rel="manifest" href="/manifest.json" />
   <style>
     body { margin: 0; background: #07080C; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+    /* 🔥 Mobile typing bug fix — force 16px+ on every form control so iOS WebView
+       never auto-zooms (which was stealing focus mid-keystroke) */
+    input, textarea, select, button {
+      font-size: 16px !important;
+      -webkit-user-select: text;
+      user-select: text;
+      -webkit-touch-callout: default;
+    }
+    /* Prevent any parent gesture handler from blocking text input touches */
+    input:focus, textarea:focus { touch-action: manipulation; }
   </style>
 </head>
 <body>
