@@ -328,6 +328,17 @@ function ProgressBar({ pct, color=C.red, h=6 }) {
 // CUSTOMER SCREENS
 // ═══════════════════════════════════════════
 
+// ─── Shared BG (hoisted to module scope so it doesn't remount on every keystroke) ───
+const BG = ({children, img="/help911-bg.jpg"}) => (
+  <div style={{position:"relative",minHeight:"100vh",paddingBottom:110}}>
+    <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:0}}>
+      <img src={img} alt="" style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center top"}} />
+      <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg, rgba(4,4,10,0.4) 0%, rgba(4,4,10,0.25) 25%, rgba(4,4,10,0.55) 55%, rgba(4,4,10,0.92) 75%, rgba(4,4,10,1) 100%)"}} />
+    </div>
+    <div style={{position:"relative",zIndex:1}}>{children}</div>
+  </div>
+);
+
 function CustHelp({ go, switchMode }) {
   const [view, setView] = useState("hero"); // hero | form
   const [form, setForm] = useState({});
@@ -358,17 +369,6 @@ function CustHelp({ go, switchMode }) {
     setLoading(false);
     setSubmitted(true);
   };
-
-  // ─── SHARED: Full-bleed dark smoky background ───
-  const BG = ({children, img="/help911-bg.jpg"}) => (
-    <div style={{position:"relative",minHeight:"100vh",paddingBottom:110}}>
-      <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:0}}>
-        <img src={img} alt="" style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center top"}} />
-        <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg, rgba(4,4,10,0.4) 0%, rgba(4,4,10,0.25) 25%, rgba(4,4,10,0.55) 55%, rgba(4,4,10,0.92) 75%, rgba(4,4,10,1) 100%)"}} />
-      </div>
-      <div style={{position:"relative",zIndex:1}}>{children}</div>
-    </div>
-  );
 
   // ═══ HERO SCREEN (Image 2 mockup) ═══
   if(view==="hero") return (
@@ -1232,6 +1232,40 @@ function RepNotif() {
 // ═══════════════════════════════════════════
 // ATTORNEY INTAKE — MULTI-STEP SIGN UP
 // ═══════════════════════════════════════════
+// ─── Hoisted helpers for CustAttorney (module-scope so inputs don't lose focus on rerender) ───
+function StepBar({ step, setStep, totalSteps }) {
+  return (
+    <div style={{marginBottom:20}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+        <p style={{...font("DM Sans",11,600,C.muted)}}>Step {step} of {totalSteps}</p>
+        {step > 1 && <button onClick={()=>setStep(step-1)} style={{background:"none",border:"none",cursor:"pointer",...font("DM Sans",11,600,C.red)}}>← Back</button>}
+      </div>
+      <div style={{display:"flex",gap:4}}>
+        {Array.from({length:totalSteps}).map((_,i)=>(
+          <div key={i} style={{flex:1,height:4,borderRadius:2,background:i<step?C.red:i===step-1?C.redLight:C.bgInput,transition:"background 0.3s"}} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Opt({ label, val, field, icon, d, u }) {
+  const active = d[field] === val;
+  return (
+    <div onClick={()=>u(field,val)} style={{
+      display:"flex",alignItems:"center",gap:10,background:active?`${C.red}12`:C.bgInput,
+      border:`1px solid ${active?`${C.red}40`:C.border}`,borderRadius:10,padding:"12px 14px",
+      cursor:"pointer",transition:"all 0.2s"
+    }}>
+      {icon && <span style={{fontSize:18}}>{icon}</span>}
+      <span style={{...font("DM Sans",13,active?600:400,active?C.white:C.chrome)}}>{label}</span>
+      <div style={{marginLeft:"auto",width:18,height:18,borderRadius:9,border:`2px solid ${active?C.red:C.chromeDim}`,background:active?C.red:"transparent",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        {active && <div style={{width:6,height:6,borderRadius:3,background:"#fff"}} />}
+      </div>
+    </div>
+  );
+}
+
 function CustAttorney({ go }) {
   const [step, setStep] = useState(1);
   const [d, setD] = useState({});
@@ -1250,37 +1284,6 @@ function CustAttorney({ go }) {
     } catch(e) { console.error(e); }
     setLoading(false);
     setSubmitted(true);
-  };
-
-  const StepBar = () => (
-    <div style={{marginBottom:20}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-        <p style={{...font("DM Sans",11,600,C.muted)}}>Step {step} of {totalSteps}</p>
-        {step > 1 && <button onClick={()=>setStep(step-1)} style={{background:"none",border:"none",cursor:"pointer",...font("DM Sans",11,600,C.red)}}>← Back</button>}
-      </div>
-      <div style={{display:"flex",gap:4}}>
-        {Array.from({length:totalSteps}).map((_,i)=>(
-          <div key={i} style={{flex:1,height:4,borderRadius:2,background:i<step?C.red:i===step-1?C.redLight:C.bgInput,transition:"background 0.3s"}} />
-        ))}
-      </div>
-    </div>
-  );
-
-  const Opt = ({label, val, field, icon}) => {
-    const active = d[field] === val;
-    return (
-      <div onClick={()=>u(field,val)} style={{
-        display:"flex",alignItems:"center",gap:10,background:active?`${C.red}12`:C.bgInput,
-        border:`1px solid ${active?`${C.red}40`:C.border}`,borderRadius:10,padding:"12px 14px",
-        cursor:"pointer",transition:"all 0.2s"
-      }}>
-        {icon && <span style={{fontSize:18}}>{icon}</span>}
-        <span style={{...font("DM Sans",13,active?600:400,active?C.white:C.chrome)}}>{label}</span>
-        <div style={{marginLeft:"auto",width:18,height:18,borderRadius:9,border:`2px solid ${active?C.red:C.chromeDim}`,background:active?C.red:"transparent",display:"flex",alignItems:"center",justifyContent:"center"}}>
-          {active && <div style={{width:6,height:6,borderRadius:3,background:"#fff"}} />}
-        </div>
-      </div>
-    );
   };
 
   if (submitted) return (
@@ -1334,7 +1337,7 @@ function CustAttorney({ go }) {
         <Btn v="ghost" small icon="💬" onClick={()=>window.open("sms:18004878911")}>Text Instead</Btn>
       </div>
 
-      <StepBar />
+      <StepBar step={step} setStep={setStep} totalSteps={totalSteps} />
 
       {/* STEP 1: Basic Info */}
       {step === 1 && (
@@ -1359,7 +1362,7 @@ function CustAttorney({ go }) {
           <p style={{...font("DM Sans",11,500,C.muted),marginBottom:8,letterSpacing:0.5}}>Type of Accident *</p>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
             {[{l:"Car Accident",v:"car",i:"🚗"},{l:"Big Truck",v:"truck",i:"🚛"},{l:"Motorcycle",v:"motorcycle",i:"🏍️"},{l:"Uber / Lyft",v:"uber_lyft",i:"🚕"},{l:"Slip & Fall",v:"slip_fall",i:"⚠️"},{l:"Pedestrian",v:"pedestrian",i:"🚶"},{l:"Hit & Run",v:"hit_run",i:"💥"},{l:"Other",v:"other",i:"📋"}].map(a=>(
-              <Opt key={a.v} label={a.l} val={a.v} field="accidentType" icon={a.i} />
+              <Opt key={a.v} label={a.l} val={a.v} field="accidentType" icon={a.i} d={d} u={u} />
             ))}
           </div>
           <div style={{marginBottom:16}}>
@@ -1372,7 +1375,7 @@ function CustAttorney({ go }) {
           <p style={{...font("DM Sans",11,500,C.muted),marginBottom:8,letterSpacing:0.5}}>Who was at fault?</p>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
             {[{l:"Other Driver",v:"other_driver"},{l:"Shared Fault",v:"shared"},{l:"Not at Fault",v:"not_at_fault"},{l:"Not Sure",v:"unsure"}].map(f=>(
-              <Opt key={f.v} label={f.l} val={f.v} field="atFault" />
+              <Opt key={f.v} label={f.l} val={f.v} field="atFault" d={d} u={u} />
             ))}
           </div>
           <Btn v="primary" full onClick={()=>d.accidentType ? setStep(3) : null} disabled={!d.accidentType}>Continue →</Btn>
@@ -1393,21 +1396,21 @@ function CustAttorney({ go }) {
           </div>
           <p style={{...font("DM Sans",11,500,C.muted),marginBottom:8,letterSpacing:0.5}}>Are you currently receiving treatment?</p>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
-            <Opt label="Yes" val={true} field="currentlyTreating" icon="✅" />
-            <Opt label="No" val={false} field="currentlyTreating" icon="❌" />
+            <Opt label="Yes" val={true} field="currentlyTreating" icon="✅" d={d} u={u} />
+            <Opt label="No" val={false} field="currentlyTreating" icon="❌" d={d} u={u} />
           </div>
           {d.currentlyTreating === true && (
             <Inp label="Where are you being treated?" placeholder="Clinic or doctor name" value={d.treatingProvider} onChange={e=>u("treatingProvider",e.target.value)} />
           )}
           <p style={{...font("DM Sans",11,500,C.muted),marginBottom:8,letterSpacing:0.5}}>Were you hospitalized?</p>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
-            <Opt label="Yes" val={true} field="hospitalized" icon="🏥" />
-            <Opt label="No" val={false} field="hospitalized" icon="🏠" />
+            <Opt label="Yes" val={true} field="hospitalized" icon="🏥" d={d} u={u} />
+            <Opt label="No" val={false} field="hospitalized" icon="🏠" d={d} u={u} />
           </div>
           <p style={{...font("DM Sans",11,500,C.muted),marginBottom:8,letterSpacing:0.5}}>Have you missed work?</p>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
-            <Opt label="Yes" val={true} field="missedWork" icon="💼" />
-            <Opt label="No" val={false} field="missedWork" icon="👍" />
+            <Opt label="Yes" val={true} field="missedWork" icon="💼" d={d} u={u} />
+            <Opt label="No" val={false} field="missedWork" icon="👍" d={d} u={u} />
           </div>
           {d.missedWork === true && (
             <Inp label="How many days?" placeholder="e.g. 5" type="number" value={d.missedDays} onChange={e=>u("missedDays",e.target.value)} />
@@ -1423,8 +1426,8 @@ function CustAttorney({ go }) {
           <p style={{...font("DM Sans",12,400,C.muted),marginBottom:16}}>This helps your attorney build the strongest case.</p>
           <p style={{...font("DM Sans",11,500,C.muted),marginBottom:8,letterSpacing:0.5}}>Do you have auto insurance?</p>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
-            <Opt label="Yes" val={true} field="hasInsurance" icon="✅" />
-            <Opt label="No" val={false} field="hasInsurance" icon="❌" />
+            <Opt label="Yes" val={true} field="hasInsurance" icon="✅" d={d} u={u} />
+            <Opt label="No" val={false} field="hasInsurance" icon="❌" d={d} u={u} />
           </div>
           {d.hasInsurance === true && (<>
             <Inp label="Your Insurance Company" placeholder="e.g. State Farm, GEICO" value={d.insuranceCo} onChange={e=>u("insuranceCo",e.target.value)} />
@@ -1433,8 +1436,8 @@ function CustAttorney({ go }) {
           <Inp label="Other Driver's Insurance (if known)" placeholder="Optional" value={d.otherInsurance} onChange={e=>u("otherInsurance",e.target.value)} />
           <p style={{...font("DM Sans",11,500,C.muted),marginBottom:8,letterSpacing:0.5}}>Was a police report filed?</p>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
-            <Opt label="Yes" val={true} field="policeReport" icon="🚔" />
-            <Opt label="No / Not Sure" val={false} field="policeReport" icon="❓" />
+            <Opt label="Yes" val={true} field="policeReport" icon="🚔" d={d} u={u} />
+            <Opt label="No / Not Sure" val={false} field="policeReport" icon="❓" d={d} u={u} />
           </div>
           {d.policeReport === true && (
             <Inp label="Report Number" placeholder="Optional" value={d.reportNum} onChange={e=>u("reportNum",e.target.value)} />
@@ -1531,8 +1534,8 @@ function CustAttorney({ go }) {
 
           <p style={{...font("DM Sans",11,500,C.muted),marginBottom:8,letterSpacing:0.5}}>Preferred Language</p>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
-            <Opt label="English" val="English" field="language" icon="🇺🇸" />
-            <Opt label="Español" val="Spanish" field="language" icon="🇲🇽" />
+            <Opt label="English" val="English" field="language" icon="🇺🇸" d={d} u={u} />
+            <Opt label="Español" val="Spanish" field="language" icon="🇲🇽" d={d} u={u} />
           </div>
 
           {/* Summary */}
