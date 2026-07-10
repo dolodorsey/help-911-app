@@ -1,0 +1,11 @@
+{
+  "app": "help-911-app",
+  "brand": "HELP 911",
+  "service": "accident-lead-case-concierge",
+  "status": "ok",
+  "schema_version": 1,
+  "release_gate": "enterprise-control-plane",
+  "authority": "MCP Gateway public.help911_*",
+  "data_classification": "highly-restricted",
+  "generated_at": "2026-07-10T00:00:00-04:00"
+}
