@@ -1,17 +1,19 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import Help911App from "./App.jsx";
+import RequestHelp from "./RequestHelp.jsx";
 import { initNative } from "./native.js";
 import { getRouteComponent } from "./routes.jsx";
 
 initNative();
 
-// Path-aware shell. If the URL matches one of the IG-driven landings
-// (/now, /treatment, /attorney, /dispatch, /restart, /insurance, /atfault,
-//  /family, /partners, /press) — render the focused landing instead of the
-// full app. Otherwise fall through to the regular Help 911 SPA.
+// Path-aware shell. Focused public routes render their own landing/intake while
+// the main HELP 911 application remains the default experience.
 function Root() {
-  const RouteLanding = getRouteComponent(typeof window !== "undefined" ? window.location.pathname : "/");
+  const pathname = typeof window !== "undefined" ? window.location.pathname : "/";
+  if (pathname.replace(/\/$/, "") === "/request-help") return <RequestHelp />;
+
+  const RouteLanding = getRouteComponent(pathname);
   if (RouteLanding) return <RouteLanding />;
   return <Help911App />;
 }
