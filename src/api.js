@@ -3,10 +3,22 @@
 // service credentials must remain in server-side automations, never this file.
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://dzlmtvodpyhetvektfuo.supabase.co";
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+const SUPABASE_KEY =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  "sb_publishable_ekvoOK6QQ05dUZuWgzQfUw_2RgbWPFR";
 
 function configured() {
   return Boolean(SUPABASE_URL && SUPABASE_KEY);
+}
+
+function getStoredRepAccessToken() {
+  if (typeof window === "undefined") return null;
+  try {
+    return JSON.parse(window.localStorage.getItem("h911_rep") || "null")?.access_token || null;
+  } catch {
+    return null;
+  }
 }
 
 function publicHeaders(accessToken) {
@@ -117,9 +129,9 @@ export async function submitAttorneyIntake(data) {
   }
 }
 
-// Rep-portal queries require the signed-in user's access token. Without one,
-// return no restricted data rather than silently falling back to anonymous reads.
-export async function fetchLeads(accessToken) {
+// Rep-portal queries require a signed-in rep access token. Existing app code can
+// omit the argument because this client recovers the rep session from localStorage.
+export async function fetchLeads(accessToken = getStoredRepAccessToken()) {
   if (!accessToken) return [];
   try {
     const response = await fetch(`${SUPABASE_URL}/rest/v1/help911_leads?select=*&order=created_at.desc&limit=50`, {
@@ -147,7 +159,7 @@ export async function fetchLeads(accessToken) {
   }
 }
 
-export async function fetchAppointments(accessToken) {
+export async function fetchAppointments(accessToken = getStoredRepAccessToken()) {
   if (!accessToken) return [];
   try {
     const today = new Date().toISOString().split("T")[0];
@@ -169,7 +181,7 @@ export async function fetchAppointments(accessToken) {
   }
 }
 
-export async function fetchLeadStats(accessToken) {
+export async function fetchLeadStats(accessToken = getStoredRepAccessToken()) {
   if (!accessToken) return { total: 0, new: 0, treatment: 0 };
   try {
     const response = await fetch(`${SUPABASE_URL}/rest/v1/help911_leads?select=status&limit=500`, {
