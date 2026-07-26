@@ -1,99 +1,74 @@
-// HELP 911 — Direct API Client
-// Calls Supabase + GHL without n8n middleware
+// HELP 911 — Browser API Client
+// Public intake writes go through the HELP 911 Supabase RPC. Private CRM and
+// service credentials must remain in server-side automations, never this file.
 
-const SUPABASE_URL = "https://dzlmtvodpyhetvektfuo.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6bG10dm9kcHloZXR2ZWt0ZnVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1ODQ4NjQsImV4cCI6MjA4NTE2MDg2NH0.qmnWB4aWdb7U8Iod9Hv8PQAOJO3AG0vYEGnPS--kfAo";
-const GHL_PIT = "pit-9a59cc0e-98f4-4968-a45a-a6c3663ffeaf";
-const GHL_LOCATION = "My8EzLOwxDNkXVKLbFBh";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://dzlmtvodpyhetvektfuo.supabase.co";
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+function configured() {
+  return Boolean(SUPABASE_URL && SUPABASE_KEY);
+}
+
+function publicHeaders(accessToken) {
+  if (!configured()) throw new Error("HELP 911 data connection is not configured.");
+  return {
+    apikey: SUPABASE_KEY,
+    Authorization: `Bearer ${accessToken || SUPABASE_KEY}`,
+    "Content-Type": "application/json",
+  };
+}
+
+async function parseResponse(response) {
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(payload?.message || payload?.error_description || payload?.error || "Request failed.");
+  }
+  return payload;
+}
 
 export async function submitLead(data) {
   try {
-    // 1. Create lead in Supabase
-    const sbResp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/help911_create_lead`, {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/help911_create_lead`, {
       method: "POST",
-      headers: {
-        "apikey": SUPABASE_KEY,
-        "Authorization": `Bearer ${SUPABASE_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: publicHeaders(),
       body: JSON.stringify({
         p_first_name: data.firstName || "",
         p_last_name: data.lastName || "",
         p_phone: data.phone || "",
         p_city: data.city || "Atlanta",
         p_accident_date: data.accidentDate || null,
-        p_needs_attorney: data.needsAttorney || false,
-        p_needs_treatment: data.needsTreatment || false,
-        p_needs_transportation: data.needsTransportation || false,
-        p_not_sure: data.notSure || false,
+        p_needs_attorney: Boolean(data.needsAttorney),
+        p_needs_treatment: Boolean(data.needsTreatment),
+        p_needs_transportation: Boolean(data.needsTransportation),
+        p_not_sure: Boolean(data.notSure),
         p_source: data.source || "app",
       }),
     });
-    const sbData = await sbResp.json();
 
-    // 2. Create contact in GHL
-    const ghlResp = await fetch("https://services.leadconnectorhq.com/contacts/", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${GHL_PIT}`,
-        "Version": "2021-07-28",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        locationId: GHL_LOCATION,
-        firstName: data.firstName,
-        lastName: data.lastName || "",
-        phone: data.phone,
-        tags: ["help911", "app_lead"],
-        source: "Help 911 App",
-        customFields: [
-          { id: "17vQEJWpVCf9gJYIG0A1", field_value: data.accidentDate || "" },
-          { id: "SEFg5RMLfSzNJlhxWSmh", field_value: data.needsAttorney ? "Yes" : "No" },
-          { id: "Vd75D4j5nWC6h4GYYlin", field_value: data.needsTreatment ? "Yes" : "No" },
-          { id: "m3DU0BBqwnfxBw4d9q3u", field_value: data.needsTransportation ? "Yes" : "No" },
-          { id: "Ru2Csh7AjUBNModKS4PH", field_value: "app" },
-          { id: "W8frBt8kbZ5aqifgHNsq", field_value: "New" },
-        ],
-      }),
-    });
-    const ghlData = await ghlResp.json();
-
-    // 3. Log sync
-    await fetch(`${SUPABASE_URL}/rest/v1/help911_ghl_sync`, {
-      method: "POST",
-      headers: {
-        "apikey": SUPABASE_KEY,
-        "Authorization": `Bearer ${SUPABASE_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        direction: "to_ghl",
-        entity_type: "contact",
-        entity_id: sbData?.lead_id || "unknown",
-        ghl_id: ghlData?.contact?.id || "unknown",
-        status: ghlData?.contact?.id ? "success" : "error",
-      }),
-    });
-
-    return { success: true, leadId: sbData?.lead_id, ghlId: ghlData?.contact?.id };
-  } catch (err) {
-    console.error("submitLead error:", err);
-    return { success: false, error: err.message };
+    const result = await parseResponse(response);
+    return {
+      success: result?.success === true,
+      leadId: result?.lead_id || null,
+      id: result?.id || null,
+    };
+  } catch (error) {
+    console.error("submitLead error:", error);
+    return { success: false, error: error.message };
   }
 }
 
 export async function submitAttorneyIntake(data) {
+  const intakeId = `H911-ATT-${Date.now().toString().slice(-8)}`;
+
   try {
-    const resp = await fetch(`${SUPABASE_URL}/rest/v1/help911_attorney_intake`, {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/help911_attorney_intake`, {
       method: "POST",
       headers: {
-        "apikey": SUPABASE_KEY,
-        "Authorization": `Bearer ${SUPABASE_KEY}`,
-        "Content-Type": "application/json",
-        "Prefer": "return=representation",
+        ...publicHeaders(),
+        Prefer: "return=minimal",
       },
       body: JSON.stringify({
-        intake_id: "H911-ATT-" + Date.now().toString().slice(-6),
+        intake_id: intakeId,
         first_name: data.firstName,
         last_name: data.lastName || "",
         phone: data.phone,
@@ -104,16 +79,16 @@ export async function submitAttorneyIntake(data) {
         accident_description: data.accidentDesc || "",
         at_fault: data.atFault || "",
         injury_description: data.injuryDesc || "",
-        currently_treating: data.currentlyTreating || false,
+        currently_treating: Boolean(data.currentlyTreating),
         treating_provider: data.treatingProvider || "",
-        hospitalized: data.hospitalized || false,
-        missed_work: data.missedWork || false,
-        missed_work_days: data.missedDays ? parseInt(data.missedDays) : null,
-        has_insurance: data.hasInsurance || false,
+        hospitalized: Boolean(data.hospitalized),
+        missed_work: Boolean(data.missedWork),
+        missed_work_days: data.missedDays ? Number.parseInt(data.missedDays, 10) : null,
+        has_insurance: Boolean(data.hasInsurance),
         insurance_company: data.insuranceCo || "",
         policy_number: data.policyNum || "",
         other_driver_insurance: data.otherInsurance || "",
-        police_report_filed: data.policeReport || false,
+        police_report_filed: Boolean(data.policeReport),
         police_report_number: data.reportNum || "",
         preferred_callback_date: data.callbackDate || null,
         preferred_callback_time: data.callbackTime || "",
@@ -121,9 +96,9 @@ export async function submitAttorneyIntake(data) {
         status: "new",
       }),
     });
-    const result = await resp.json();
 
-    // Also create as a lead + GHL contact
+    await parseResponse(response);
+
     await submitLead({
       firstName: data.firstName,
       lastName: data.lastName,
@@ -131,71 +106,83 @@ export async function submitAttorneyIntake(data) {
       city: data.city,
       accidentDate: data.accidentDate,
       needsAttorney: true,
-      needsTreatment: data.currentlyTreating || false,
+      needsTreatment: Boolean(data.currentlyTreating),
       source: "attorney_intake",
     });
 
-    return { success: true, intakeId: result?.[0]?.intake_id || "submitted" };
-  } catch (err) {
-    console.error("submitAttorneyIntake error:", err);
-    return { success: false, error: err.message };
+    return { success: true, intakeId };
+  } catch (error) {
+    console.error("submitAttorneyIntake error:", error);
+    return { success: false, error: error.message };
   }
 }
 
-// ── Real data queries for Rep portal ──
-const SB_URL = "https://dzlmtvodpyhetvektfuo.supabase.co";
-const SB_KEY_READ = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6bG10dm9kcHloZXR2ZWt0ZnVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1ODQ4NjQsImV4cCI6MjA4NTE2MDg2NH0.qmnWB4aWdb7U8Iod9Hv8PQAOJO3AG0vYEGnPS--kfAo";
-
-export async function fetchLeads() {
+// Rep-portal queries require the signed-in user's access token. Without one,
+// return no restricted data rather than silently falling back to anonymous reads.
+export async function fetchLeads(accessToken) {
+  if (!accessToken) return [];
   try {
-    const r = await fetch(`${SB_URL}/rest/v1/help911_leads?select=*&order=created_at.desc&limit=50`, {
-      headers: { apikey: SB_KEY_READ, Authorization: `Bearer ${SB_KEY_READ}` },
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/help911_leads?select=*&order=created_at.desc&limit=50`, {
+      headers: publicHeaders(accessToken),
     });
-    const data = await r.json();
-    if (Array.isArray(data)) return data.map(l => ({
-      id: l.id,
-      name: `${l.first_name || ''} ${l.last_name || ''}`.trim() || 'Unknown',
-      phone: l.phone || '',
-      date: l.created_at ? new Date(l.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '',
-      needs: [l.needs_attorney && 'Attorney', l.needs_treatment && 'Treatment', l.needs_transportation && 'Transportation', l.not_sure && 'Not Sure'].filter(Boolean),
-      status: l.status || 'New',
-      urgency: l.urgency || 'med',
-      source: l.source || 'app',
+    const data = await parseResponse(response);
+    if (!Array.isArray(data)) return [];
+    return data.map((lead) => ({
+      id: lead.id,
+      name: `${lead.first_name || ""} ${lead.last_name || ""}`.trim() || "Unknown",
+      phone: lead.phone || "",
+      date: lead.created_at ? new Date(lead.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "",
+      needs: [
+        lead.needs_attorney && "Attorney",
+        lead.needs_treatment && "Treatment",
+        lead.needs_transportation && "Transportation",
+        lead.not_sure && "Not Sure",
+      ].filter(Boolean),
+      status: lead.status || "New",
+      urgency: lead.urgency || "med",
+      source: lead.source || "app",
     }));
+  } catch {
     return [];
-  } catch { return []; }
+  }
 }
 
-export async function fetchAppointments() {
+export async function fetchAppointments(accessToken) {
+  if (!accessToken) return [];
   try {
-    const today = new Date().toISOString().split('T')[0];
-    const r = await fetch(`${SB_URL}/rest/v1/help911_appointments?select=*,help911_clients(first_name,last_name),help911_clinics(name)&scheduled_at=gte.${today}T00:00:00&order=scheduled_at.asc&limit=20`, {
-      headers: { apikey: SB_KEY_READ, Authorization: `Bearer ${SB_KEY_READ}` },
+    const today = new Date().toISOString().split("T")[0];
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/help911_appointments?select=*,help911_clients(first_name,last_name),help911_clinics(name)&scheduled_at=gte.${today}T00:00:00&order=scheduled_at.asc&limit=20`, {
+      headers: publicHeaders(accessToken),
     });
-    const data = await r.json();
-    if (Array.isArray(data)) return data.map(a => ({
-      id: a.id,
-      client: a.help911_clients ? `${a.help911_clients.first_name || ''} ${a.help911_clients.last_name || ''}`.trim() : 'Unknown',
-      time: a.scheduled_at ? new Date(a.scheduled_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : 'TBD',
-      clinic: a.help911_clinics?.name || 'TBD',
-      type: a.appointment_type || 'Appointment',
-      transport: a.transport_requested || false,
+    const data = await parseResponse(response);
+    if (!Array.isArray(data)) return [];
+    return data.map((appointment) => ({
+      id: appointment.id,
+      client: appointment.help911_clients ? `${appointment.help911_clients.first_name || ""} ${appointment.help911_clients.last_name || ""}`.trim() : "Unknown",
+      time: appointment.scheduled_at ? new Date(appointment.scheduled_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "TBD",
+      clinic: appointment.help911_clinics?.name || "TBD",
+      type: appointment.appointment_type || "Appointment",
+      transport: Boolean(appointment.transport_requested),
     }));
+  } catch {
     return [];
-  } catch { return []; }
+  }
 }
 
-export async function fetchLeadStats() {
+export async function fetchLeadStats(accessToken) {
+  if (!accessToken) return { total: 0, new: 0, treatment: 0 };
   try {
-    const r = await fetch(`${SB_URL}/rest/v1/help911_leads?select=status&limit=500`, {
-      headers: { apikey: SB_KEY_READ, Authorization: `Bearer ${SB_KEY_READ}` },
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/help911_leads?select=status&limit=500`, {
+      headers: publicHeaders(accessToken),
     });
-    const data = await r.json();
+    const data = await parseResponse(response);
     if (!Array.isArray(data)) return { total: 0, new: 0, treatment: 0 };
     return {
       total: data.length,
-      new: data.filter(l => l.status === 'New' || l.status === 'Callback Requested').length,
-      treatment: data.filter(l => (l.status || '').includes('Treatment')).length,
+      new: data.filter((lead) => lead.status === "New" || lead.status === "Callback Requested").length,
+      treatment: data.filter((lead) => (lead.status || "").includes("Treatment")).length,
     };
-  } catch { return { total: 0, new: 0, treatment: 0 }; }
+  } catch {
+    return { total: 0, new: 0, treatment: 0 };
+  }
 }
