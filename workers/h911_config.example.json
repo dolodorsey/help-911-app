@@ -1,0 +1,25 @@
+{
+  "supabase_url": "https://PROJECT.supabase.co",
+  "supabase_key": "SERVER_SIDE_SECRET_KEY",
+  "recordings_dir": "/path/to/trunk-recorder/audio",
+  "default_feed_id": "local-sdr",
+  "default_feed_name": "Local Public Safety Radio",
+  "default_county": "Fulton",
+  "systems": {
+    "atlanta": {
+      "feed_id": "atlanta-p25",
+      "feed_name": "Atlanta Public Safety",
+      "county": "Fulton"
+    },
+    "dekalb": {
+      "feed_id": "dekalb-p25",
+      "feed_name": "DeKalb Public Safety",
+      "county": "DeKalb"
+    }
+  },
+  "whisper_cpu_only": true,
+  "whisper_threads": 4,
+  "transcription_workers": 2,
+  "batch_size": 50,
+  "file_stability_seconds": 5
+}
