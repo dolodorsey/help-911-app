@@ -31,7 +31,8 @@ jobs:
           grep -q "official_directory" src/resource-intelligence.js
           grep -q "call_to_confirm" src/resource-intelligence.js
           grep -q "rankEmergencyResources" scripts/apply-resource-intelligence.mjs
-          ! grep -q "sort.*dist" src/resource-intelligence.js
+          grep -q "scoreEmergencyResource(b)-scoreEmergencyResource(a)" src/resource-intelligence.js
+          grep -q "distance(a.dist)-distance(b.dist)" src/resource-intelligence.js
       - name: Run intelligence tests
         run: npm test
       - name: Build production app
