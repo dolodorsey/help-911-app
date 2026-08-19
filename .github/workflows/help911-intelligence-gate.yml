@@ -1,0 +1,39 @@
+name: HELP 911 Intelligence Gate
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/help911-intelligence-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install exact locked dependencies
+        run: npm ci
+      - name: Verify resource-intelligence contract
+        run: |
+          grep -q "official_directory" src/resource-intelligence.js
+          grep -q "call_to_confirm" src/resource-intelligence.js
+          grep -q "rankEmergencyResources" scripts/apply-resource-intelligence.mjs
+          grep -q "scoreEmergencyResource(b)-scoreEmergencyResource(a)" src/resource-intelligence.js
+          grep -q "distance(a.dist)-distance(b.dist)" src/resource-intelligence.js
+      - name: Run intelligence tests
+        run: npm test
+      - name: Build production app
+        run: npm run build
