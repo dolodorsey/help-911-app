@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "test": "node --test tests/*.test.mjs",
+    "build": "node scripts/apply-resource-intelligence.mjs && npm test && vite build",
     "preview": "vite preview",
     "ios:build": "npm run build && npx cap sync ios",
     "ios:open": "npx cap open ios",
