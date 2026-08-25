@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/request-help", "destination": "/" },
+    { "source": "/case", "destination": "/" },
     { "source": "/now", "destination": "/" },
     { "source": "/treatment", "destination": "/" },
     { "source": "/attorney", "destination": "/" },
