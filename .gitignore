@@ -1,3 +1,5 @@
 node_modules
 dist
 .DS_Store
+.h911_config.json
+*.log
